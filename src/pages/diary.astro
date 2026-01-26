@@ -11,7 +11,11 @@ interface Frontmatter {
   tags?: string[];
 }
 
-// 2. 抓取文章 (使用 import.meta.glob 替代过时的 Astro.glob)
+// ==========================================
+// 🔴 重点修改在这里：
+// 使用 import.meta.glob 替代了 Astro.glob
+// eager: true 表示直接读取内容，而不是懒加载
+// ==========================================
 const matches = import.meta.glob<MarkdownInstance<Frontmatter>>('./posts/*.md', { eager: true });
 const allPosts = Object.values(matches);
 
@@ -21,12 +25,12 @@ const diaryPosts = allPosts.filter((post) => {
   return tags.includes('diary');
 });
 
-// 4. 按时间倒序排序
+// 4. 按时间倒序
 const sortedPosts = diaryPosts.sort(
   (a, b) => new Date(b.frontmatter.pubDate).valueOf() - new Date(a.frontmatter.pubDate).valueOf()
 );
 
-// --- 逻辑 A: 生成热力图数据 (最近一年) ---
+// --- 逻辑 A: 生成热力图数据 ---
 const today = new Date();
 const oneYearAgo = new Date();
 oneYearAgo.setFullYear(today.getFullYear() - 1);
@@ -41,16 +45,14 @@ sortedPosts.forEach(post => {
 const days = [];
 let currentDate = new Date(oneYearAgo);
 
-// 修正：确保包含今天
 while (currentDate <= today) {
   const dateStr = currentDate.toISOString().split('T')[0];
   const count = activityMap.get(dateStr) || 0;
   
   let level = 0;
-  if (count > 0) level = 1; // 1篇
-  if (count > 1) level = 2; // 2-3篇
-  if (count > 3) level = 3; // >3篇
-  
+  if (count > 0) level = 1;
+  if (count > 1) level = 2;
+  if (count > 3) level = 3;
   days.push({ date: dateStr, level, count });
   
   currentDate.setDate(currentDate.getDate() + 1);
@@ -63,24 +65,18 @@ type YearGroup = Record<string, MonthGroup>;
 const groupedPosts = sortedPosts.reduce<YearGroup>((acc, post) => {
   const date = new Date(post.frontmatter.pubDate);
   const year = date.getFullYear().toString();
-  // 使用数字月份方便排序，展示时再转英文
-  const monthIndex = date.getMonth(); 
   const monthName = date.toLocaleString('en-US', { month: 'long' });
   
   if (!acc[year]) acc[year] = {};
-  
-  // 我们在键名里存一下索引方便排序，或者直接依赖数据插入顺序（因为原数据已排序）
-  // 这里简单起见，直接用月份名，后续渲染时处理顺序
   if (!acc[year][monthName]) acc[year][monthName] = [];
   
   acc[year][monthName].push(post);
   return acc;
 }, {});
 
-// 获取年份并倒序
 const years = Object.keys(groupedPosts).sort((a, b) => Number(b) - Number(a));
 
-// 定义月份顺序映射，用于渲染时排序
+// 月份排序映射表
 const monthOrder: Record<string, number> = {
   'January': 0, 'February': 1, 'March': 2, 'April': 3, 'May': 4, 'June': 5,
   'July': 6, 'August': 7, 'September': 8, 'October': 9, 'November': 10, 'December': 11
@@ -114,7 +110,6 @@ const monthOrder: Record<string, number> = {
           <span>More</span>
         </div>
         
-        {/* 使用 Grid 布局模拟 GitHub 贡献图: 7行代表一周 */}
         <div class="grid grid-rows-7 grid-flow-col gap-[3px] w-max">
           {days.map((day) => (
             <div 
@@ -137,12 +132,11 @@ const monthOrder: Record<string, number> = {
       <div class="space-y-12">
         {years.map(year => {
            const yearData = groupedPosts[year];
-           // 对月份进行倒序排序 (12月 -> 1月)
+           // 按月份倒序排列
            const months = Object.keys(yearData).sort((a, b) => monthOrder[b] - monthOrder[a]);
 
            return (
             <div class="relative border-l-2 border-stone-200 dark:border-stone-800 ml-3 pl-8 pb-4">
-              {/* 年份节点 */}
               <span class="absolute -left-[9px] top-0 flex h-4 w-4 items-center justify-center rounded-full bg-stone-200 dark:bg-stone-700 ring-4 ring-white dark:ring-stone-900"></span>
               <h2 class="text-4xl font-bold text-stone-300 dark:text-stone-700 mb-8 -mt-2">{year}</h2>
 
@@ -158,15 +152,12 @@ const monthOrder: Record<string, number> = {
                       {monthPosts.map(post => (
                         <details class="group bg-white dark:bg-stone-800 rounded-lg shadow-sm border border-stone-200 dark:border-stone-700 overflow-hidden">
                           <summary class="flex items-center cursor-pointer p-4 hover:bg-stone-50 dark:hover:bg-stone-700/50 transition-colors list-none select-none">
-                            {/* 日期 Badge */}
                             <span class="font-mono text-xs font-bold text-stone-500 bg-stone-100 dark:bg-stone-900 px-2 py-1 rounded min-w-[3rem] text-center mr-3">
                               {new Date(post.frontmatter.pubDate).getDate().toString().padStart(2, '0')}
                             </span>
-                            
                             <span class="font-medium flex-1 group-open:text-orange-600 transition-colors">
                               {post.frontmatter.title}
                             </span>
-                            
                             <span class="text-xs text-gray-400 transform group-open:rotate-90 transition-transform duration-200 ml-2">
                               ▶
                             </span>
@@ -194,4 +185,4 @@ const monthOrder: Record<string, number> = {
       </div>
     </div>
   </Section>
-</Base>git add .
+</Base>
