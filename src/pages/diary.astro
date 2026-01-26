@@ -11,7 +11,7 @@ interface Frontmatter {
   tags?: string[];
 }
 
-// 2. 抓取文章
+// 2. 抓取文章 (使用新标准 import.meta.glob)
 const matches = import.meta.glob<MarkdownInstance<Frontmatter>>('./posts/*.md', { eager: true });
 const allPosts = Object.values(matches);
 
@@ -34,7 +34,7 @@ oneYearAgo.setFullYear(today.getFullYear() - 1);
 const activityMap = new Map<string, number>();
 
 sortedPosts.forEach(post => {
-  // 修复点 1: 强制告诉 TS 这是一个 string，不会是 undefined
+  // 强制转换为 string 以通过 TS 检查
   const dateStr = new Date(post.frontmatter.pubDate).toISOString().split('T')[0] as string;
   activityMap.set(dateStr, (activityMap.get(dateStr) || 0) + 1);
 });
@@ -43,7 +43,6 @@ const days = [];
 let currentDate = new Date(oneYearAgo);
 
 while (currentDate <= today) {
-  // 修复点 2: 同样强制转换为 string
   const dateStr = currentDate.toISOString().split('T')[0] as string;
   const count = activityMap.get(dateStr) || 0;
   
@@ -128,9 +127,11 @@ const monthOrder: Record<string, number> = {
       {/* --- 时间轴列表区域 --- */}
       <div class="space-y-12">
         {years.map(year => {
-           // 修复点 3: 加了 !，告诉 TS 年份数据一定存在
+           // 使用 ! 断言年份数据存在
            const yearData = groupedPosts[year]!;
-           const months = Object.keys(yearData).sort((a, b) => monthOrder[b] - monthOrder[a]);
+           
+           // ✅ 关键修复：加了 ( ?? 0 )，如果找不到月份，默认当成 0 处理，这样 TS 就不会报错了
+           const months = Object.keys(yearData).sort((a, b) => (monthOrder[b] ?? 0) - (monthOrder[a] ?? 0));
 
            return (
             <div class="relative border-l-2 border-stone-200 dark:border-stone-800 ml-3 pl-8 pb-4">
@@ -138,7 +139,7 @@ const monthOrder: Record<string, number> = {
               <h2 class="text-4xl font-bold text-stone-300 dark:text-stone-700 mb-8 -mt-2">{year}</h2>
 
               {months.map(month => {
-                // 修复点 4: 加了 !，告诉 TS 月份数据一定存在
+                // 使用 ! 断言月份数据存在
                 const monthPosts = yearData[month]!;
                 return (
                   <div class="mb-8 group/month">
