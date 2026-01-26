@@ -11,11 +11,7 @@ interface Frontmatter {
   tags?: string[];
 }
 
-// ==========================================
-// 🔴 重点修改在这里：
-// 使用 import.meta.glob 替代了 Astro.glob
-// eager: true 表示直接读取内容，而不是懒加载
-// ==========================================
+// 2. 抓取文章
 const matches = import.meta.glob<MarkdownInstance<Frontmatter>>('./posts/*.md', { eager: true });
 const allPosts = Object.values(matches);
 
@@ -38,7 +34,8 @@ oneYearAgo.setFullYear(today.getFullYear() - 1);
 const activityMap = new Map<string, number>();
 
 sortedPosts.forEach(post => {
-  const dateStr = new Date(post.frontmatter.pubDate).toISOString().split('T')[0];
+  // 修复点 1: 强制告诉 TS 这是一个 string，不会是 undefined
+  const dateStr = new Date(post.frontmatter.pubDate).toISOString().split('T')[0] as string;
   activityMap.set(dateStr, (activityMap.get(dateStr) || 0) + 1);
 });
 
@@ -46,7 +43,8 @@ const days = [];
 let currentDate = new Date(oneYearAgo);
 
 while (currentDate <= today) {
-  const dateStr = currentDate.toISOString().split('T')[0];
+  // 修复点 2: 同样强制转换为 string
+  const dateStr = currentDate.toISOString().split('T')[0] as string;
   const count = activityMap.get(dateStr) || 0;
   
   let level = 0;
@@ -76,7 +74,6 @@ const groupedPosts = sortedPosts.reduce<YearGroup>((acc, post) => {
 
 const years = Object.keys(groupedPosts).sort((a, b) => Number(b) - Number(a));
 
-// 月份排序映射表
 const monthOrder: Record<string, number> = {
   'January': 0, 'February': 1, 'March': 2, 'April': 3, 'May': 4, 'June': 5,
   'July': 6, 'August': 7, 'September': 8, 'October': 9, 'November': 10, 'December': 11
@@ -131,8 +128,8 @@ const monthOrder: Record<string, number> = {
       {/* --- 时间轴列表区域 --- */}
       <div class="space-y-12">
         {years.map(year => {
-           const yearData = groupedPosts[year];
-           // 按月份倒序排列
+           // 修复点 3: 加了 !，告诉 TS 年份数据一定存在
+           const yearData = groupedPosts[year]!;
            const months = Object.keys(yearData).sort((a, b) => monthOrder[b] - monthOrder[a]);
 
            return (
@@ -141,7 +138,8 @@ const monthOrder: Record<string, number> = {
               <h2 class="text-4xl font-bold text-stone-300 dark:text-stone-700 mb-8 -mt-2">{year}</h2>
 
               {months.map(month => {
-                const monthPosts = yearData[month];
+                // 修复点 4: 加了 !，告诉 TS 月份数据一定存在
+                const monthPosts = yearData[month]!;
                 return (
                   <div class="mb-8 group/month">
                     <h3 class="text-xl font-bold text-orange-600 mb-4 sticky top-0 bg-stone-50/90 dark:bg-stone-900/90 backdrop-blur-sm py-2 inline-block pr-4 rounded-r-lg z-10">
