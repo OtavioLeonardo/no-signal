@@ -1,0 +1,166 @@
+---
+import Base from '@/layouts/Base.astro';
+import Section from '@/components/Section.astro';
+import type { MarkdownInstance } from 'astro';
+
+// 1. 定义数据结构
+interface Frontmatter {
+  title: string;
+  pubDate: string;
+  description: string;
+  tags?: string[];
+}
+
+// 2. 抓取文章
+const allPosts = await Astro.glob<Frontmatter>('./posts/*.md');
+
+// 3. 筛选日记
+const diaryPosts = allPosts.filter((post) => {
+  const tags = post.frontmatter.tags || [];
+  return tags.includes('diary');
+});
+
+// 按时间倒序
+const sortedPosts = diaryPosts.sort(
+  (a, b) => new Date(b.frontmatter.pubDate).valueOf() - new Date(a.frontmatter.pubDate).valueOf()
+);
+
+// --- 逻辑 A: 生成热力图数据 ---
+const today = new Date();
+const oneYearAgo = new Date();
+oneYearAgo.setFullYear(today.getFullYear() - 1);
+
+const activityMap = new Map<string, number>();
+
+sortedPosts.forEach(post => {
+  // 强制转换为 string，防止 undefined 报错
+  const dateStr = new Date(post.frontmatter.pubDate).toISOString().split('T')[0] as string;
+  activityMap.set(dateStr, (activityMap.get(dateStr) || 0) + 1);
+});
+
+const days = [];
+let currentDate = new Date(oneYearAgo);
+while (currentDate <= today) {
+  // 强制转换为 string
+  const dateStr = currentDate.toISOString().split('T')[0] as string;
+  const count = activityMap.get(dateStr) || 0;
+  
+  let level = 0;
+  if (count > 0) level = 1;
+  if (count > 1) level = 2;
+  if (count > 3) level = 3;
+  days.push({ date: dateStr, level });
+  
+  currentDate.setDate(currentDate.getDate() + 1);
+}
+
+// --- 逻辑 B: 按 [年] -> [月] 分组 ---
+const groupedPosts = sortedPosts.reduce((acc: Record<string, Record<string, MarkdownInstance<Frontmatter>[]>>, post) => {
+  const date = new Date(post.frontmatter.pubDate);
+  const year = date.getFullYear().toString();
+  const month = date.toLocaleString('en-US', { month: 'long' });
+  
+  if (!acc[year]) acc[year] = {};
+  if (!acc[year]![month]) acc[year]![month] = []; // 使用 ! 断言
+  
+  acc[year]![month]!.push(post); // 使用 ! 断言
+  return acc;
+}, {});
+
+// 修复 sort 算术运算
+const years = Object.keys(groupedPosts).sort((a, b) => Number(b) - Number(a));
+---
+
+<Base head={{ title: 'Diary', description: 'Log of my life' }}>
+  <Section>
+    <div class="py-12">
+      <h1 class="text-3xl font-bold mb-8">📅 Life Log</h1>
+
+      {sortedPosts.length === 0 && (
+        <div class="p-4 bg-orange-100 text-orange-800 rounded-lg">
+          还没有找到日记。请确保你的文章 frontmatter 里包含 tags: ["diary"]
+        </div>
+      )}
+
+      <div class="mb-12 overflow-x-auto pb-4">
+        <div class="flex gap-1 text-xs text-gray-400 mb-2">
+          <span>Less</span>
+          <div class="w-3 h-3 bg-stone-200 dark:bg-stone-800 rounded-sm"></div>
+          <div class="w-3 h-3 bg-orange-200 dark:bg-orange-900/40 rounded-sm"></div>
+          <div class="w-3 h-3 bg-orange-400 dark:bg-orange-600 rounded-sm"></div>
+          <div class="w-3 h-3 bg-orange-600 dark:bg-orange-400 rounded-sm"></div>
+          <span>More</span>
+        </div>
+        
+        <div class="grid grid-rows-7 grid-flow-col gap-1 w-max">
+          {days.map((day) => (
+            <div 
+              title={`${day.date}: ${activityMap.get(day.date) || 0} entries`}
+              class:list={[
+                "w-3 h-3 rounded-sm transition-colors",
+                {
+                  "bg-stone-200 dark:bg-stone-800": day.level === 0,
+                  "bg-orange-200 dark:bg-orange-900/50": day.level === 1,
+                  "bg-orange-400 dark:bg-orange-600": day.level === 2,
+                  "bg-orange-600 dark:bg-orange-400": day.level === 3
+                }
+              ]}
+            ></div>
+          ))}
+        </div>
+      </div>
+
+      <div class="space-y-12">
+        {years.map(year => {
+           // 在这里把年份数据取出来，让 TS 放心
+           const yearData = groupedPosts[year]!;
+           return (
+            <div class="relative border-l-2 border-stone-200 dark:border-stone-800 ml-3 pl-8 pb-4">
+              <span class="absolute -left-[9px] top-0 flex h-4 w-4 items-center justify-center rounded-full bg-stone-200 dark:bg-stone-700 ring-4 ring-white dark:ring-stone-900"></span>
+              <h2 class="text-4xl font-bold text-stone-300 dark:text-stone-700 mb-8 -mt-2">{year}</h2>
+
+              {Object.keys(yearData).map(month => {
+                // 同样，在这里把月份数据取出来
+                const monthPosts = yearData[month]!;
+                return (
+                  <div class="mb-8">
+                    <h3 class="text-xl font-bold text-orange-600 mb-4 sticky top-0 bg-stone-100 dark:bg-stone-900 py-2 inline-block pr-4">{month}</h3>
+                    <div class="space-y-4">
+                      
+                      {monthPosts.map(post => (
+                        <details class="group bg-white dark:bg-stone-800 rounded-lg shadow-sm border border-stone-200 dark:border-stone-700 overflow-hidden">
+                          <summary class="flex items-center cursor-pointer p-4 hover:bg-stone-50 dark:hover:bg-stone-700/50 transition-colors list-none">
+                            <span class="font-mono text-xs text-gray-500 min-w-[50px]">
+                              {new Date(post.frontmatter.pubDate).getDate().toString().padStart(2, '0')}日
+                            </span>
+                            <span class="mx-2 text-stone-300"> - </span>
+                            <span class="font-medium flex-1 group-open:text-orange-600 transition-colors">
+                              {post.frontmatter.title}
+                            </span>
+                            <span class="text-xs text-gray-400 group-open:rotate-90 transition-transform duration-200">▶</span>
+                          </summary>
+                          
+                          <div class="px-4 pb-4 pt-0 text-gray-600 dark:text-gray-300 prose dark:prose-invert prose-sm max-w-none border-t border-stone-100 dark:border-stone-700/50 mt-2 pt-4">
+                            <p class="italic text-xs mb-2 text-gray-400">
+                              {post.frontmatter.description}
+                            </p>
+                            <div class="mt-4">
+                              <a href={post.url} class="text-orange-500 hover:underline mt-2 inline-block text-xs">
+                                [点击阅读全文 →]
+                              </a>
+                            </div>
+                          </div>
+                        </details>
+                      ))}
+
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  </Section>
+</Base>

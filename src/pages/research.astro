@@ -1,0 +1,62 @@
+---
+import Base from '@/layouts/Base.astro';
+import Section from '@/components/Section.astro';
+import '@pagefind/default-ui/css/ui.css'; // 引入默认样式
+---
+
+<Base head={{ title: 'Search', description: 'Search my blog' }}>
+  <Section>
+    <div class="py-12">
+      <h1 class="text-3xl font-bold mb-8">🔍 Search</h1>
+      
+      <div id="search" class="p-4 bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700"></div>
+
+    </div>
+  </Section>
+</Base>
+
+<script>
+  import { PagefindUI } from "@pagefind/default-ui";
+
+  // 等待页面加载完成后初始化搜索框
+  document.addEventListener("DOMContentLoaded", () => {
+    new PagefindUI({
+      element: "#search",
+      showSubResults: true, // 显示文章里的小标题匹配
+      excerptLength: 30,     // 摘要长度
+      resetStyles: false,    // 使用我们自定义的 CSS 变量
+    });
+  });
+</script>
+
+<style is:global>
+  /* --- 适配你的博客主题 (橙色/深色模式) --- */
+  :root {
+    --pagefind-ui-scale: 1;
+    --pagefind-ui-primary: #ea580c; /* 你的主题色 Orange-600 */
+    --pagefind-ui-text: #1c1917;    /* Stone-900 */
+    --pagefind-ui-background: transparent;
+    --pagefind-ui-border: #e7e5e4;  /* Stone-200 */
+    --pagefind-ui-tag: #f5f5f4;     /* Stone-100 */
+    --pagefind-ui-border-radius: 0.5rem;
+    --pagefind-ui-font: inherit; 
+  }
+
+  /* 深色模式适配 */
+  html.dark {
+    --pagefind-ui-text: #fafaf9;    /* Stone-50 */
+    --pagefind-ui-background: transparent;
+    --pagefind-ui-border: #44403c;  /* Stone-700 */
+    --pagefind-ui-tag: #292524;     /* Stone-800 */
+  }
+
+  /* 细节微调 */
+  .pagefind-ui__search-input {
+    font-weight: normal;
+  }
+  
+  /* 让搜索结果里的图片不要太大 */
+  .pagefind-ui__result-thumb {
+    object-fit: cover;
+  }
+</style>

@@ -1,11 +1,11 @@
 {
-	"name": "",
+	"name": "no-signal",
 	"type": "module",
 	"version": "0.0.1",
 	"scripts": {
 		"dev": "astro dev",
 		"start": "astro dev",
-		"build": "astro check && astro build",
+		"build": "astro check && astro build && pagefind --site dist",
 		"preview": "astro preview",
 		"astro": "astro"
 	},
@@ -30,7 +30,9 @@
 		"typescript": "5.9.3"
 	},
 	"devDependencies": {
+		"@pagefind/default-ui": "^1.4.0",
 		"@tailwindcss/typography": "0.5.19",
+		"pagefind": "^1.4.0",
 		"prettier": "3.8.1",
 		"prettier-plugin-astro": "0.14.1",
 		"prettier-plugin-tailwindcss": "0.7.2"

@@ -1,0 +1,46 @@
+---
+import Base from '@/layouts/Base.astro';
+import Section from '@/components/Section.astro';
+
+// 这里填你的工具数据，想加多少加多少
+const tools = [
+  {
+    name: "LMU PitWall",
+    description: "Le Mans Ultimate 的必备数据与工具",
+    url: "https://otavioleonardo.github.io/lmu-pitwall/",
+    icon: "🏎️"
+  },
+  {
+    name: "Sudoku Solver",
+    description: "一个快速求解数独的算法演示。",
+    url: "https://your-sudoku-url.com",
+    icon: "🧩"
+  },
+  {
+    name: "My German Notes",
+    description: "我的德语学习笔记和复习工具。",
+    url: "#",
+    icon: "🇩🇪"
+  }
+];
+---
+
+<Base head={{ title: 'My Tools', description: 'A collection of my personal projects' }}>
+  <Section>
+    <div class="py-12">
+      <h1 class="text-3xl font-bold mb-8">🛠️ My Tools & Projects</h1>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {tools.map((tool) => (
+          <a href={tool.url} target="_blank" class="block group">
+            <div class="bg-white dark:bg-stone-800 rounded-xl p-6 shadow-sm border-2 border-transparent hover:border-orange-500 transition-all hover:-translate-y-1">
+              <div class="text-4xl mb-4">{tool.icon}</div>
+              <h3 class="text-xl font-bold mb-2 group-hover:text-orange-600">{tool.name}</h3>
+              <p class="text-gray-600 dark:text-gray-400">{tool.description}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </Section>
+</Base>
