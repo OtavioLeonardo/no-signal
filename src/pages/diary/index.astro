@@ -1,0 +1,113 @@
+---
+import { AppConfig } from '@/utils/AppConfig';
+import Base from '@/layouts/Base.astro';
+import Section from '@/components/Section.astro';
+import Heading from '@/components/Heading.astro';
+import type { MarkdownInstance } from 'astro';
+
+const { title } = AppConfig;
+const { description } = AppConfig;
+
+// 1. 抓取當前文件夾下的 Markdown
+// eager: true 依然保留，方便直接讀取 frontmatter 數據
+const allDiaries = Object.values(
+    import.meta.glob('./*.md', { eager: true })
+) as MarkdownInstance<any>[];
+
+// 2. 排序 (新 -> 舊)
+allDiaries.sort((a, b) => 
+    new Date(b.frontmatter.pubDate).valueOf() - new Date(a.frontmatter.pubDate).valueOf()
+);
+
+// 3. 雙層分組 [年] -> [月] -> [日記數組]
+const groupedDiaries = allDiaries.reduce((acc, diary) => {
+    const date = new Date(diary.frontmatter.pubDate);
+    const year = date.getFullYear().toString();
+    const month = date.toLocaleString('en-US', { month: 'long' });
+
+    if (!acc[year]) acc[year] = {};
+    if (!acc[year][month]) acc[year][month] = [];
+    
+    acc[year][month].push(diary);
+    return acc;
+}, {} as Record<string, Record<string, MarkdownInstance<any>[]>>);
+
+// 年份倒序
+const years = Object.keys(groupedDiaries).sort((a, b) => Number(b) - Number(a));
+
+// 月份倒序輔助
+const monthOrder: Record<string, number> = {
+  'January': 0, 'February': 1, 'March': 2, 'April': 3, 'May': 4, 'June': 5,
+  'July': 6, 'August': 7, 'September': 8, 'October': 9, 'November': 10, 'December': 11
+};
+---
+
+<Base head={{ title: `Diary - ${title}`, description }}>
+    <Section>
+        <div class="flex items-baseline gap-2 mb-8">
+            <Heading title="Diary" />
+            <span class="text-stone-400 text-sm">/ 碎碎念</span>
+        </div>
+    </Section>
+
+    <Section>
+        <div class="space-y-12">
+            {years.map(year => {
+                const yearData = groupedDiaries[year];
+                const months = Object.keys(yearData).sort((a, b) => monthOrder[b] - monthOrder[a]);
+
+                return (
+                    <div class="relative border-l-2 border-stone-200 dark:border-stone-800 ml-3 pl-8 pb-4">
+                        {/* 年份裝飾節點 */}
+                        <span class="absolute -left-[9px] top-0 flex h-4 w-4 items-center justify-center rounded-full bg-stone-200 dark:bg-stone-700 ring-4 ring-white dark:ring-stone-900"></span>
+                        
+                        <h2 class="text-3xl font-bold text-stone-300 dark:text-stone-600 mb-8 -mt-2">{year}</h2>
+
+                        {months.map(month => (
+                            <div class="mb-8">
+                                {/* 月份標題 (吸頂效果) */}
+                                <h3 class="text-lg font-bold text-orange-600 mb-3 sticky top-0 bg-stone-50/95 dark:bg-stone-900/95 py-2 inline-block pr-4 z-10">
+                                    {month}
+                                </h3>
+
+                                <div class="space-y-3">
+                                    {yearData[month].map((post) => (
+                                        // ✅ 改回使用 <a> 標籤，點擊跳轉
+                                        <a 
+                                            href={post.url} 
+                                            class="group flex items-start p-3 -mx-3 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800/50 transition-colors"
+                                        >
+                                            {/* 左邊：日期 (01, 26...) */}
+                                            {/* shrink-0 防止日期被壓縮 */}
+                                            <span class="shrink-0 font-mono text-base font-bold text-stone-500 bg-stone-200 dark:bg-stone-800 px-2 py-0.5 rounded min-w-[2.5rem] text-center mt-0.5">
+                                                {new Date(post.frontmatter.pubDate).getDate().toString().padStart(2, '0')}
+                                            </span>
+
+                                            {/* 中間：分隔符 - */}
+                                            <span class="shrink-0 mx-3 text-stone-300 font-light mt-0.5">
+                                                -
+                                            </span>
+
+                                            {/* 右邊：標題 + 描述 */}
+                                            <div class="flex flex-col min-w-0">
+                                                {/* 標題 */}
+                                                <span class="font-bold text-stone-800 dark:text-stone-200 group-hover:text-orange-600 transition-colors truncate">
+                                                    {post.frontmatter.title}
+                                                </span>
+                                                
+                                                {/* ✅ 新增：Description 顯示 */}
+                                                <p class="text-sm text-stone-500 dark:text-stone-400 mt-1 line-clamp-2 leading-relaxed">
+                                                    {post.frontmatter.description}
+                                                </p>
+                                            </div>
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                );
+            })}
+        </div>
+    </Section>
+</Base>
