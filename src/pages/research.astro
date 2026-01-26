@@ -18,13 +18,15 @@ import '@pagefind/default-ui/css/ui.css'; // 引入默认样式
 <script>
   import { PagefindUI } from "@pagefind/default-ui";
 
-  // 等待页面加载完成后初始化搜索框
   document.addEventListener("DOMContentLoaded", () => {
     new PagefindUI({
       element: "#search",
-      showSubResults: true, // 显示文章里的小标题匹配
-      excerptLength: 30,     // 摘要长度
-      resetStyles: false,    // 使用我们自定义的 CSS 变量
+      showSubResults: true,
+      excerptLength: 30,
+      resetStyles: false,
+      // 👇👇👇 关键修复在这里！ 👇👇👇
+      // 强制告诉 Pagefind 去网站根目录找索引文件，而不是在当前目录瞎找
+      bundlePath: "/pagefind/",
     });
   });
 </script>
