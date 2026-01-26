@@ -1,7 +1,6 @@
 ---
-import Base from '@/layouts/Base.astro';
+import Base from '@/layouts/Base.astro'; // 确保这里指向你的 Layout 文件
 import Section from '@/components/Section.astro';
-import '@pagefind/default-ui/css/ui.css'; // 引入默认样式
 ---
 
 <Base head={{ title: 'Search', description: 'Search my blog' }}>
@@ -9,8 +8,9 @@ import '@pagefind/default-ui/css/ui.css'; // 引入默认样式
     <div class="py-12">
       <h1 class="text-3xl font-bold mb-8">🔍 Search</h1>
       
+      <link href="/pagefind/pagefind-ui.css" rel="stylesheet" />
+      
       <div id="search" class="p-4 bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700"></div>
-
     </div>
   </Section>
 </Base>
@@ -19,45 +19,81 @@ import '@pagefind/default-ui/css/ui.css'; // 引入默认样式
   import { PagefindUI } from "@pagefind/default-ui";
 
   document.addEventListener("DOMContentLoaded", () => {
+    // 1. 初始化 Pagefind
     new PagefindUI({
       element: "#search",
       showSubResults: true,
-      excerptLength: 30,
-      resetStyles: false,
-      // 👇👇👇 关键修复在这里！ 👇👇👇
-      // 强制告诉 Pagefind 去网站根目录找索引文件，而不是在当前目录瞎找
-      bundlePath: "/pagefind/",
+      resetStyles: false, // 使用我们自己的 CSS 变量
+      bundlePath: "/pagefind/", // 依然保留这个，防止 Vercel 找不到路径
+    });
+
+    // 2. 获取 DOM 元素
+    const el = document.querySelector(".pagefind-ui");
+    const input = el?.querySelector<HTMLInputElement>(`input[type="text"]`);
+    const clearButton = el?.querySelector(".pagefind-ui__search-clear");
+
+    // 3. 检查 URL 是否有查询参数 ?q=...
+    const url = new URL(window.location.href);
+    const params = new URLSearchParams(url.search);
+    const query = params.get("q");
+
+    // 4. 如果 URL 里有参数，自动填充到输入框并触发搜索
+    if (query && input) {
+      input.value = query;
+      // 手动触发 input 事件，让 Pagefind 开始搜索
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+
+    // 5. 监听输入，实时更新 URL 参数
+    input?.addEventListener("input", (e) => {
+      const target = e.target as HTMLInputElement;
+      const url = new URL(window.location.href);
+      const params = new URLSearchParams(url.search);
+      
+      if (target.value) {
+        params.set("q", target.value);
+      } else {
+        params.delete("q");
+      }
+      
+      // 更新浏览器地址栏而不刷新页面
+      window.history.replaceState({}, "", `${url.pathname}?${params}`);
+    });
+
+    // 6. 监听清除按钮，点击时清空 URL 参数
+    clearButton?.addEventListener("click", () => {
+      const url = new URL(window.location.href);
+      const params = new URLSearchParams(url.search);
+      params.delete("q");
+      window.history.replaceState({}, "", `${url.pathname}`);
     });
   });
 </script>
 
 <style is:global>
-  /* --- 适配你的博客主题 (橙色/深色模式) --- */
+  /* 复用你之前的样式设置，保证深色模式好看 */
   :root {
     --pagefind-ui-scale: 1;
-    --pagefind-ui-primary: #ea580c; /* 你的主题色 Orange-600 */
-    --pagefind-ui-text: #1c1917;    /* Stone-900 */
+    --pagefind-ui-primary: #ea580c;
+    --pagefind-ui-text: #1c1917;
     --pagefind-ui-background: transparent;
-    --pagefind-ui-border: #e7e5e4;  /* Stone-200 */
-    --pagefind-ui-tag: #f5f5f4;     /* Stone-100 */
+    --pagefind-ui-border: #e7e5e4;
+    --pagefind-ui-tag: #f5f5f4;
     --pagefind-ui-border-radius: 0.5rem;
     --pagefind-ui-font: inherit; 
   }
 
-  /* 深色模式适配 */
   html.dark {
-    --pagefind-ui-text: #fafaf9;    /* Stone-50 */
+    --pagefind-ui-text: #fafaf9;
     --pagefind-ui-background: transparent;
-    --pagefind-ui-border: #44403c;  /* Stone-700 */
-    --pagefind-ui-tag: #292524;     /* Stone-800 */
+    --pagefind-ui-border: #44403c;
+    --pagefind-ui-tag: #292524;
   }
 
-  /* 细节微调 */
   .pagefind-ui__search-input {
     font-weight: normal;
   }
   
-  /* 让搜索结果里的图片不要太大 */
   .pagefind-ui__result-thumb {
     object-fit: cover;
   }
