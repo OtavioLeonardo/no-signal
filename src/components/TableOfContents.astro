@@ -1,5 +1,4 @@
 ---
-// src/components/TableOfContents.astro
 import type { MarkdownHeading } from 'astro';
 
 interface Props {
@@ -8,26 +7,24 @@ interface Props {
 
 const { headings } = Astro.props;
 
-// 过滤掉 H1 (文章标题) 和 H4 及其以下的标题，只保留 H2 和 H3
+// 过滤掉 H1 和 H4+
 const toc = headings.filter((h) => h.depth > 1 && h.depth < 4);
 ---
 
-<nav class="toc-container">
-  <h2 class="text-stone-900 dark:text-stone-100 font-bold mb-4 text-sm uppercase tracking-wider">
+<nav class="toc-container text-sm">
+  <h2 class="font-bold text-stone-900 dark:text-stone-100 mb-4 tracking-wider uppercase text-xs">
     On This Page
   </h2>
-  <ul class="space-y-2 text-sm border-l border-stone-200 dark:border-stone-800">
+  <ul class="border-l border-stone-200 dark:border-stone-800">
     {
       toc.map((heading) => (
         <li>
           <a
             href={`#${heading.slug}`}
+            data-slug={heading.slug}
             class:list={[
-              "block py-1 hover:text-orange-600 dark:hover:text-orange-500 transition-colors border-l-2 -ml-[1px]",
-              // 根據標題層級調整縮進和邊框顏色
-              heading.depth === 2 
-                ? "pl-4 text-stone-600 dark:text-stone-400 border-transparent hover:border-orange-500" 
-                : "pl-8 text-stone-500 dark:text-stone-500 border-transparent text-xs"
+              "toc-link block py-1.5 transition-all border-l-2 -ml-[2px]", // -ml-[2px] 為了蓋住父級邊框
+              heading.depth === 2 ? "pl-4" : "pl-8 text-xs"
             ]}
           >
             {heading.text}
@@ -39,8 +36,63 @@ const toc = headings.filter((h) => h.depth > 1 && h.depth < 4);
 </nav>
 
 <style>
-  /* 使得平滑滾動 */
-  html {
-    scroll-behavior: smooth;
+  /* 基础状态：灰色，透明边框 */
+  .toc-link {
+    @apply text-stone-500 dark:text-stone-500 border-transparent;
+  }
+
+  /* Hover 状态 */
+  .toc-link:hover {
+    @apply text-orange-600 dark:text-orange-500 border-orange-300 dark:border-orange-800;
+  }
+
+  /* ✅ Active (高亮) 状态 */
+  /* 当 JS 给链接加上 .active 类时，应用这些样式 */
+  .toc-link.active {
+    @apply text-orange-600 dark:text-orange-500 font-bold border-orange-600 dark:border-orange-500 bg-orange-50 dark:bg-stone-800;
   }
 </style>
+
+<script>
+  // 这是一个客户端脚本，会在浏览器中运行
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1. 获取所有目录链接和文章标题
+    const tocLinks = document.querySelectorAll('.toc-link');
+    const headings = document.querySelectorAll('article h2, article h3');
+
+    // 2. 创建 IntersectionObserver (交叉观察器)
+    // 这是一个性能非常好的 API，用来检测元素是否进入了屏幕
+    const observerOptions = {
+      root: null,
+      // rootMargin 是关键：
+      // '-100px' 表示顶部往下 100px 开始计算（避开 Header）
+      // '-66%' 表示底部往上 66% 都不算（意味着只有屏幕上半部分的标题才会触发高亮）
+      // 这样设置最符合阅读习惯
+      rootMargin: '-100px 0px -66% 0px', 
+      threshold: 0
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          // 移除所有链接的 active 类
+          tocLinks.forEach((link) => link.classList.remove('active'));
+          
+          // 找到当前标题对应的目录链接
+          const id = entry.target.getAttribute('id');
+          const activeLink = document.querySelector(`.toc-link[href="#${id}"]`);
+          
+          // 给它加上 active 类
+          if (activeLink) {
+            activeLink.classList.add('active');
+          }
+        }
+      });
+    }, observerOptions);
+
+    // 3. 开始观察所有标题
+    headings.forEach((heading) => {
+      observer.observe(heading);
+    });
+  });
+</script>
