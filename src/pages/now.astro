@@ -1,0 +1,139 @@
+---
+import Base from '@/layouts/Base.astro';
+import Section from '@/components/Section.astro';
+import Heading from '@/components/Heading.astro';
+import { AppConfig } from '@/utils/AppConfig';
+
+const { title } = AppConfig;
+const description = "What I'm doing now";
+
+// ✅ 手动更新这个日期，让读者知道你的状态是否新鲜
+const lastUpdated = "2026-01-27";
+---
+
+<Base head={{ title: `Now - ${title}`, description }}>
+    <Section>
+        <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-4 mb-8">
+            <div>
+                <Heading title="Now" />
+                <p class="text-stone-500 dark:text-stone-400 mt-2">
+                    這是我的「現在」頁面，靈感來自 <a href="https://nownownow.com/about" target="_blank" class="underline hover:text-orange-600 transition-colors">Derek Sivers</a>。
+                    <br/>
+                    這不是關於我是誰，而是關於我<strong class="text-stone-800 dark:text-stone-200">此時此刻</strong>在做什麼。
+                </p>
+            </div>
+            
+            {/* 更新时间戳 */}
+            <div class="shrink-0">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 border border-orange-200 dark:border-orange-800">
+                    <span class="w-2 h-2 mr-2 rounded-full bg-orange-500 animate-pulse"></span>
+                    Last Updated: {lastUpdated}
+                </span>
+            </div>
+        </div>
+    </Section>
+
+    <Section>
+        <div class="space-y-12">
+            
+            {/* 1. 生活主线 */}
+            <div class="prose prose-stone dark:prose-invert max-w-none">
+                <h3 class="flex items-center gap-2">
+                    🎓 生活與學術
+                </h3>
+                <p>
+                    目前我主要精力集中在撰寫我的畢業論文：
+                    <strong>《近代上海中文報刊中的小提琴接受史研究（1920-1949）》</strong>。每天都在和民國時期的舊報紙堆打交道，試圖從碎片化的信息中拼湊出那個時代的音樂圖景。
+                </p>
+                <p>
+                    同時也在學習德語（目前 A2 水平），為了將來可能的研究或生活做準備。
+                </p>
+            </div>
+
+            {/* 2. 聚焦板块：用 Grid 布局展示你的多重兴趣 */}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* 板块 A: 音乐 */}
+                <div class="p-6 rounded-2xl bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-2xl">🎵</span>
+                        <h3 class="font-bold text-lg text-stone-800 dark:text-stone-200">Vocal Training</h3>
+                    </div>
+                    <ul class="space-y-3 text-stone-600 dark:text-stone-400 text-sm">
+                        <li class="flex items-start gap-2">
+                            <span class="text-orange-500 mt-1">▶</span>
+                            <span>正在打磨 Donizetti 的花腔片段，尤其是高音 C 的穩定性。</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-orange-500 mt-1">▶</span>
+                            <span>每週二、四下午固定練聲，鄰居目前還沒有報警。</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-orange-500 mt-1">▶</span>
+                            <span>正在閱讀：《歌唱的藝術》</span>
+                        </li>
+                    </ul>
+                </div>
+
+                {/* 板块 B: 模拟赛车 */}
+                <div class="p-6 rounded-2xl bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-2xl">🏎️</span>
+                        <h3 class="font-bold text-lg text-stone-800 dark:text-stone-200">Sim Racing</h3>
+                    </div>
+                    <ul class="space-y-3 text-stone-600 dark:text-stone-400 text-sm">
+                        <li class="flex items-start gap-2">
+                            <span class="text-orange-500 mt-1">▶</span>
+                            <span><strong>Focus:</strong> Le Mans Ultimate</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-orange-500 mt-1">▶</span>
+                            <span><strong>Track:</strong> 正在死磕 <span class="text-stone-800 dark:text-stone-200 font-bold">Imola</span> 賽道，目標是把圈速穩定在 1:16 以內。</span>
+                        </li>
+                    </ul>
+                </div>
+
+                {/* 板块 C: 编程 */}
+                <div class="p-6 rounded-2xl bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-2xl">💻</span>
+                        <h3 class="font-bold text-lg text-stone-800 dark:text-stone-200">Coding</h3>
+                    </div>
+                    <ul class="space-y-3 text-stone-600 dark:text-stone-400 text-sm">
+                        <li class="flex items-start gap-2">
+                            <span class="text-orange-500 mt-1">▶</span>
+                            <span>正在開發 <strong>PITWALL</strong>：一個用於管理我賽車數據的個人網站。</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-orange-500 mt-1">▶</span>
+                            <span>折騰 Astro 博客（就是你現在看到的），試圖把它變成我的第二大腦。</span>
+                        </li>
+                    </ul>
+                </div>
+
+                {/* 板块 D: 阅读/输入 */}
+                <div class="p-6 rounded-2xl bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-2xl">📚</span>
+                        <h3 class="font-bold text-lg text-stone-800 dark:text-stone-200">Reading & Input</h3>
+                    </div>
+                    <ul class="space-y-3 text-stone-600 dark:text-stone-400 text-sm">
+                        <li class="flex items-start gap-2">
+                            <span class="text-orange-500 mt-1">▶</span>
+                            <span>《野火》</span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+            {/* 底部引用 */}
+            <div class="text-center pt-8 border-t border-stone-200 dark:border-stone-800">
+                <p class="text-stone-400 italic font-serif">
+                    "Do one thing and do it well." <br/>
+                    (雖然我好像同時在做很多事...)
+                </p>
+            </div>
+        </div>
+    </Section>
+</Base>
