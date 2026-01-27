@@ -1,5 +1,5 @@
 ---
-import Base from '@/layouts/Base.astro'; // 确保这里指向你的 Layout 文件
+import Base from '@/layouts/Base.astro';
 import Section from '@/components/Section.astro';
 ---
 
@@ -25,6 +25,10 @@ import Section from '@/components/Section.astro';
       showSubResults: true,
       resetStyles: false, // 使用我们自己的 CSS 变量
       bundlePath: "/pagefind/", // 依然保留这个，防止 Vercel 找不到路径
+      
+      // 👇👇👇 新增这一行 👇👇👇
+      language: "zh", 
+      // 👆👆👆 告诉 UI 我们在使用中文
     });
 
     // 2. 获取 DOM 元素

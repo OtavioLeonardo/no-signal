@@ -41,7 +41,11 @@ export default defineConfig({
 		remarkPlugins: [remarkReadingTime]
 	},
 
-	integrations: [react(), sitemap(), pagefind()],
+	integrations: [react(), sitemap(), pagefind({
+		pagefindOptions: {
+			language: 'zh', // 👈 这一行是灵魂！强制建立中文索引
+		}
+	})],
 	output: 'static',
 
 	adapter: vercelStatic({
