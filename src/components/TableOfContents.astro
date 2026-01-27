@@ -1,0 +1,46 @@
+---
+// src/components/TableOfContents.astro
+import type { MarkdownHeading } from 'astro';
+
+interface Props {
+  headings: MarkdownHeading[];
+}
+
+const { headings } = Astro.props;
+
+// 过滤掉 H1 (文章标题) 和 H4 及其以下的标题，只保留 H2 和 H3
+const toc = headings.filter((h) => h.depth > 1 && h.depth < 4);
+---
+
+<nav class="toc-container">
+  <h2 class="text-stone-900 dark:text-stone-100 font-bold mb-4 text-sm uppercase tracking-wider">
+    On This Page
+  </h2>
+  <ul class="space-y-2 text-sm border-l border-stone-200 dark:border-stone-800">
+    {
+      toc.map((heading) => (
+        <li>
+          <a
+            href={`#${heading.slug}`}
+            class:list={[
+              "block py-1 hover:text-orange-600 dark:hover:text-orange-500 transition-colors border-l-2 -ml-[1px]",
+              // 根據標題層級調整縮進和邊框顏色
+              heading.depth === 2 
+                ? "pl-4 text-stone-600 dark:text-stone-400 border-transparent hover:border-orange-500" 
+                : "pl-8 text-stone-500 dark:text-stone-500 border-transparent text-xs"
+            ]}
+          >
+            {heading.text}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  /* 使得平滑滾動 */
+  html {
+    scroll-behavior: smooth;
+  }
+</style>

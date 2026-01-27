@@ -3,23 +3,49 @@ import { AppConfig } from '@/utils/AppConfig';
 import Base from '@/layouts/Base.astro';
 import PostHeader from '@/components/PostHeader.astro';
 import PostContent from '@/components/PostContent.astro';
+import TableOfContents from '@/components/TableOfContents.astro'; // ✅ 1. 引入新组件
 
 const { description } = AppConfig;
 
-const { frontmatter } = Astro.props;
+// ✅ 2. 这里的 props 类型定义里，Astro 会自动传入 headings
+const { frontmatter, headings } = Astro.props; 
 ---
 
 <Base head={{ title: frontmatter.title, description }}>
-	<div class="mx-auto w-full max-w-screen-md">
-		<PostHeader
-			title={frontmatter.title}
-			author={frontmatter.author}
-			tags={frontmatter.tags}
-			minutesRead={frontmatter.minutesRead}
-			pubDate={frontmatter.pubDate}
-			isPinned={frontmatter.isPinned}
-			img={{ src: frontmatter.image.src, alt: frontmatter.image.alt }}
-		/>
-		<PostContent><slot /></PostContent>
-	</div>
+    {/* ✅ 3. 修改布局容器：
+       原本是 max-w-screen-md，为了放侧边栏，我们需要一个更宽的外层容器 (max-w-screen-xl)
+    */}
+    <div class="mx-auto w-full max-w-screen-xl px-4 md:px-8">
+        
+        {/* 使用 Grid 布局：手机单列，电脑双列 (左边内容 1fr，右边目录 250px) */}
+        <div class="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_250px]">
+            
+            {/* --- 左侧：文章主体 --- */}
+            {/* 在这里保留 max-w-screen-md，确保文章内容的宽度和你之前一样，不会变得太宽难读 */}
+            <main class="mx-auto w-full max-w-screen-md min-w-0">
+                <PostHeader
+                    title={frontmatter.title}
+                    author={frontmatter.author}
+                    tags={frontmatter.tags}
+                    minutesRead={frontmatter.minutesRead}
+                    pubDate={frontmatter.pubDate}
+                    isPinned={frontmatter.isPinned}
+                    img={{ src: frontmatter.image.src, alt: frontmatter.image.alt }}
+                />
+                
+                <PostContent>
+                    <slot />
+                </PostContent>
+            </main>
+
+            {/* --- 右侧：TOC 目录 --- */}
+            {/* hidden lg:block 表示只在电脑大屏显示 */}
+            <aside class="hidden lg:block">
+                <div class="sticky top-24"> {/* 距离顶部 24px 吸附 */}
+                    <TableOfContents headings={headings} />
+                </div>
+            </aside>
+
+        </div>
+    </div>
 </Base>
