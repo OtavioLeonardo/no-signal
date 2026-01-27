@@ -4,7 +4,7 @@ import Card from '@/components/Card.astro';
 import Base from '@/layouts/Base.astro';
 import Heading from '@/components/Heading.astro';
 import { AppConfig } from '@/utils/AppConfig';
-import { MarkdownInstance } from 'astro';
+import type { MarkdownInstance } from 'astro';
 import { sortPostsByDate } from '@/utils/data.util';
 
 export async function getStaticPaths(): Promise<any> {
@@ -51,15 +51,19 @@ const { posts } = Astro.props;
 			<a href="/tags" class="underline hover:text-orange-600">all tags →</a>
 		</div>
 	</Section>
+	
 	<Section>
-		{
-			posts
-				.filter((post: any) => post.frontmatter.tags?.includes(tag))
-				.map((post: any) => (
-					<div class="mb-4 basis-1 last:mb-0">
+		{/* ✅ 修改這裡：加入 Grid 容器，在大屏幕上顯示 3 列 */}
+		<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+			{
+				posts.map((post: any) => (
+					// 這裡不需要 mb-4 了，因為外面的 gap-6 負責間距
+					// 也不需要 basis-1，Grid 會自動處理寬度
+					<div class="h-full"> 
 						<Card post={post} />
 					</div>
 				))
-		}
+			}
+		</div>
 	</Section>
 </Base>
