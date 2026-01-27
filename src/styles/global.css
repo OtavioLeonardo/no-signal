@@ -65,41 +65,48 @@ These styles are for code highlighting that can't be easily implemented with jus
 /* --- Obsidian/GitHub Callout 样式 (Emoji 版) --- */
 @layer components {
 
-    /* 基础容器 */
+    /* --- 基础容器 --- */
     .markdown-alert {
-        @apply mb-4 border-l-4 rounded-r-lg p-4 text-sm bg-[var(--alert-bg)] border-[var(--alert-border)];
+        /* ✅ 修复 1: 加上 text-[var(--alert-color)] 让正文也有颜色 */
+        @apply mb-4 border-l-4 rounded-r-lg p-4 text-sm bg-[var(--alert-bg)] border-[var(--alert-border)] text-[var(--alert-color)];
     }
 
-    /* 标题样式 */
+    /* --- 标题样式 --- */
     .markdown-alert-title {
-        @apply flex items-center font-bold mb-2 text-[var(--alert-color)];
+        @apply flex items-center font-bold mb-2;
     }
 
-    /* 内容最后一段不留 margin */
+    /* ✅ 修复 2: 隐藏插件自带的 SVG 图标，避免出现双图标 */
+    .markdown-alert-title>svg {
+        @apply hidden;
+    }
+
+    /* ✅ 修复 3: 强制内部的 p 标签继承颜色 (防止被 prose 样式覆盖) */
+    .markdown-alert p {
+        color: inherit;
+    }
+
     .markdown-alert>*:last-child {
         @apply mb-0;
     }
 
-    /* --- 图标通用设置 (Emoji) --- */
+    /* --- Emoji 图标通用设置 --- */
     .markdown-alert-title::before {
         @apply inline-block mr-2 text-lg leading-none not-italic;
-        /* 强制使用 Emoji 字体，防止被系统字体覆盖 */
         font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
     }
 
-    /* --- 各类型定义 (颜色变量 + Emoji Content) --- */
+    /* --- 各类型定义 --- */
 
-    /* 1. Important (紫色) -> 💬 */
+    /* 1. Important (紫色) 💬 */
     .markdown-alert-important {
         --alert-color: #7e22ce;
-        /* purple-700 */
         --alert-bg: #faf5ff;
-        /* purple-50 */
         --alert-border: #a855f7;
-        /* purple-500 */
 
         &:where(.dark, .dark *) {
-            --alert-color: #d8b4fe;
+            --alert-color: #e9d5ff;
+            /* 把文字颜色调得更亮一点，确保深色模式看得清 */
             --alert-bg: #3b0764;
             --alert-border: #9333ea;
         }
@@ -109,17 +116,15 @@ These styles are for code highlighting that can't be easily implemented with jus
         content: "💬";
     }
 
-    /* 2. Note (蓝色) -> ℹ️ */
+    /* 2. Note (蓝色) ℹ️ */
     .markdown-alert-note {
         --alert-color: #1d4ed8;
-        /* blue-700 */
         --alert-bg: #eff6ff;
-        /* blue-50 */
         --alert-border: #3b82f6;
-        /* blue-500 */
 
         &:where(.dark, .dark *) {
-            --alert-color: #93c5fd;
+            --alert-color: #bfdbfe;
+            /* 亮蓝 */
             --alert-bg: #172554;
             --alert-border: #2563eb;
         }
@@ -129,17 +134,15 @@ These styles are for code highlighting that can't be easily implemented with jus
         content: "ℹ️";
     }
 
-    /* 3. Tip (绿色) -> 💡 */
+    /* 3. Tip (绿色) 💡 */
     .markdown-alert-tip {
         --alert-color: #15803d;
-        /* green-700 */
         --alert-bg: #f0fdf4;
-        /* green-50 */
         --alert-border: #22c55e;
-        /* green-500 */
 
         &:where(.dark, .dark *) {
-            --alert-color: #86efac;
+            --alert-color: #bbf7d0;
+            /* 亮绿 */
             --alert-bg: #052e16;
             --alert-border: #16a34a;
         }
@@ -149,17 +152,15 @@ These styles are for code highlighting that can't be easily implemented with jus
         content: "💡";
     }
 
-    /* 4. Warning (橙色) -> ⚠️ */
+    /* 4. Warning (橙色) ⚠️ */
     .markdown-alert-warning {
         --alert-color: #c2410c;
-        /* orange-700 */
         --alert-bg: #fff7ed;
-        /* orange-50 */
         --alert-border: #f97316;
-        /* orange-500 */
 
         &:where(.dark, .dark *) {
-            --alert-color: #fdba74;
+            --alert-color: #fed7aa;
+            /* 亮橙 */
             --alert-bg: #431407;
             --alert-border: #ea580c;
         }
@@ -169,17 +170,15 @@ These styles are for code highlighting that can't be easily implemented with jus
         content: "⚠️";
     }
 
-    /* 5. Caution (红色) -> 🛑 */
+    /* 5. Caution (红色) 🛑 */
     .markdown-alert-caution {
         --alert-color: #b91c1c;
-        /* red-700 */
         --alert-bg: #fef2f2;
-        /* red-50 */
         --alert-border: #ef4444;
-        /* red-500 */
 
         &:where(.dark, .dark *) {
-            --alert-color: #fca5a5;
+            --alert-color: #fecaca;
+            /* 亮红 */
             --alert-bg: #450a0a;
             --alert-border: #dc2626;
         }
