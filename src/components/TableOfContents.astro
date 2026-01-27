@@ -21,9 +21,13 @@ const toc = headings.filter((h) => h.depth > 1 && h.depth < 4);
         <li>
           <a
             href={`#${heading.slug}`}
-            data-slug={heading.slug}
             class:list={[
-              "toc-link block py-1.5 transition-all border-l-2 -ml-[2px]", // -ml-[2px] 為了蓋住父級邊框
+              "toc-link block py-1.5 transition-all border-l-2 -ml-[2px] border-transparent", 
+              // 基础颜色 (石色)
+              "text-stone-500 dark:text-stone-500",
+              // Hover 颜色 (橙色)
+              "hover:text-orange-600 dark:hover:text-orange-500 hover:border-orange-300 dark:hover:border-orange-800",
+              // 根据层级调整缩进
               heading.depth === 2 ? "pl-4" : "pl-8 text-xs"
             ]}
           >
@@ -36,38 +40,34 @@ const toc = headings.filter((h) => h.depth > 1 && h.depth < 4);
 </nav>
 
 <style>
-  /* 基础状态：灰色，透明边框 */
-  .toc-link {
-    @apply text-stone-500 dark:text-stone-500 border-transparent;
+  /* * ✅ 修复方案：这里不再使用 @apply，而是使用原生 CSS。
+   * 当 JavaScript 给元素加上 .active 类时，应用以下样式。
+   * 颜色值对应 Tailwind 的 Orange-600 和 Stone/Orange 配色。
+   */
+  
+  /* 亮色模式高亮 */
+  :global(.toc-link.active) {
+    color: #ea580c; /* orange-600 */
+    font-weight: 700;
+    border-left-color: #ea580c;
+    background-color: #fff7ed; /* orange-50 */
   }
 
-  /* Hover 状态 */
-  .toc-link:hover {
-    @apply text-orange-600 dark:text-orange-500 border-orange-300 dark:border-orange-800;
-  }
-
-  /* ✅ Active (高亮) 状态 */
-  /* 当 JS 给链接加上 .active 类时，应用这些样式 */
-  .toc-link.active {
-    @apply text-orange-600 dark:text-orange-500 font-bold border-orange-600 dark:border-orange-500 bg-orange-50 dark:bg-stone-800;
+  /* 暗色模式高亮 (利用 html.dark 父级选择器) */
+  :global(html.dark .toc-link.active) {
+    color: #f97316; /* orange-500 */
+    border-left-color: #f97316;
+    background-color: #292524; /* stone-800 */
   }
 </style>
 
 <script>
-  // 这是一个客户端脚本，会在浏览器中运行
   document.addEventListener('DOMContentLoaded', () => {
-    // 1. 获取所有目录链接和文章标题
     const tocLinks = document.querySelectorAll('.toc-link');
     const headings = document.querySelectorAll('article h2, article h3');
 
-    // 2. 创建 IntersectionObserver (交叉观察器)
-    // 这是一个性能非常好的 API，用来检测元素是否进入了屏幕
     const observerOptions = {
       root: null,
-      // rootMargin 是关键：
-      // '-100px' 表示顶部往下 100px 开始计算（避开 Header）
-      // '-66%' 表示底部往上 66% 都不算（意味着只有屏幕上半部分的标题才会触发高亮）
-      // 这样设置最符合阅读习惯
       rootMargin: '-100px 0px -66% 0px', 
       threshold: 0
     };
@@ -75,22 +75,20 @@ const toc = headings.filter((h) => h.depth > 1 && h.depth < 4);
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          // 移除所有链接的 active 类
           tocLinks.forEach((link) => link.classList.remove('active'));
           
-          // 找到当前标题对应的目录链接
           const id = entry.target.getAttribute('id');
-          const activeLink = document.querySelector(`.toc-link[href="#${id}"]`);
-          
-          // 给它加上 active 类
-          if (activeLink) {
-            activeLink.classList.add('active');
+          // 这里的 CSS 选择器必须加转义，以防 id 是数字开头
+          if (id) {
+             const activeLink = document.querySelector(`.toc-link[href="#${CSS.escape(id)}"]`);
+             if (activeLink) {
+               activeLink.classList.add('active');
+             }
           }
         }
       });
     }, observerOptions);
 
-    // 3. 开始观察所有标题
     headings.forEach((heading) => {
       observer.observe(heading);
     });
