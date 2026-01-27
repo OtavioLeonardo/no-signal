@@ -11,13 +11,14 @@ const { headings } = Astro.props;
 const toc = headings.filter((h) => h.depth > 1 && h.depth < 4);
 ---
 
-<nav class="toc-container text-sm">
-  <h2 class="font-bold text-stone-900 dark:text-stone-100 mb-4 tracking-wider uppercase text-xs">
-    On This Page
-  </h2>
-  <ul class="border-l border-stone-200 dark:border-stone-800">
-    {
-      toc.map((heading) => (
+{/* ✅ 核心修改：只有当 toc 数组有内容时，才渲染下面的 HTML */}
+{toc.length > 0 && (
+  <nav class="toc-container text-sm">
+    <h2 class="font-bold text-stone-900 dark:text-stone-100 mb-4 tracking-wider uppercase text-xs">
+      On This Page
+    </h2>
+    <ul class="border-l border-stone-200 dark:border-stone-800">
+      {toc.map((heading) => (
         <li>
           <a
             href={`#${heading.slug}`}
@@ -34,36 +35,37 @@ const toc = headings.filter((h) => h.depth > 1 && h.depth < 4);
             {heading.text}
           </a>
         </li>
-      ))
-    }
-  </ul>
-</nav>
+      ))}
+    </ul>
+  </nav>
+)}
 
 <style>
-  /* * ✅ 修复方案：这里不再使用 @apply，而是使用原生 CSS。
-   * 当 JavaScript 给元素加上 .active 类时，应用以下样式。
-   * 颜色值对应 Tailwind 的 Orange-600 和 Stone/Orange 配色。
-   */
+  /* 样式部分保持不变，因为如果没有 nav 元素，这些样式自然不会生效，不会有副作用 */
   
-  /* 亮色模式高亮 */
   :global(.toc-link.active) {
-    color: #ea580c; /* orange-600 */
+    color: #ea580c; 
     font-weight: 700;
     border-left-color: #ea580c;
-    background-color: #fff7ed; /* orange-50 */
+    background-color: #fff7ed; 
   }
 
-  /* 暗色模式高亮 (利用 html.dark 父级选择器) */
   :global(html.dark .toc-link.active) {
-    color: #f97316; /* orange-500 */
+    color: #f97316; 
     border-left-color: #f97316;
-    background-color: #292524; /* stone-800 */
+    background-color: #292524; 
   }
 </style>
 
 <script>
+  // 脚本部分也保持不变。
+  // 如果页面上没有 .toc-link 元素（即目录没渲染），这段脚本运行了也不会报错，只是什么都不做。
   document.addEventListener('DOMContentLoaded', () => {
     const tocLinks = document.querySelectorAll('.toc-link');
+    
+    // 如果没有目录链接，直接退出，省点性能
+    if (tocLinks.length === 0) return;
+
     const headings = document.querySelectorAll('article h2, article h3');
 
     const observerOptions = {
@@ -78,7 +80,6 @@ const toc = headings.filter((h) => h.depth > 1 && h.depth < 4);
           tocLinks.forEach((link) => link.classList.remove('active'));
           
           const id = entry.target.getAttribute('id');
-          // 这里的 CSS 选择器必须加转义，以防 id 是数字开头
           if (id) {
              const activeLink = document.querySelector(`.toc-link[href="#${CSS.escape(id)}"]`);
              if (activeLink) {
