@@ -20,42 +20,172 @@ These styles are for code highlighting that can't be easily implemented with jus
         @apply p-0;
     }
 
-    .content pre > code span[data-line] {
+    .content pre>code span[data-line] {
         @apply border-l-8 border-transparent px-2;
     }
 
-    .content pre > code span:first-of-type {
+    .content pre>code span:first-of-type {
         @apply rounded-t-lg pt-2;
     }
 
-    .content pre > code span:last-of-type {
+    .content pre>code span:last-of-type {
         @apply rounded-b-lg pb-2;
     }
 
-    .content pre > code .highlighted {
+    .content pre>code .highlighted {
         @apply border-l-8 !border-gray-300/60 bg-gray-200/5;
     }
 
-    .content pre > code[data-line-numbers] {
+    .content pre>code[data-line-numbers] {
         counter-reset: line;
     }
 
-    .content pre > code[data-line-numbers] > span[data-line]::before {
+    .content pre>code[data-line-numbers]>span[data-line]::before {
         counter-increment: line;
         content: counter(line);
         @apply mr-8 inline-block w-4 text-left text-[#7ca2dfad];
     }
 
-    .content pre > code > span[data-line]::before {
+    .content pre>code>span[data-line]::before {
         content: '';
         @apply inline-block w-4 text-right;
     }
 
-    .content pre > code[data-line-numbers-max-digits='2'] > span[data-line]::before {
+    .content pre>code[data-line-numbers-max-digits='2']>span[data-line]::before {
         @apply w-8;
     }
 
-    .content code[data-line-numbers-max-digits='3'] > span[data-line]::before {
+    .content code[data-line-numbers-max-digits='3']>span[data-line]::before {
         @apply w-12;
+    }
+}
+
+/* ... 上面是你原本的代碼 ... */
+
+/* --- Obsidian/GitHub Callout 样式 (Emoji 版) --- */
+@layer components {
+
+    /* 基础容器 */
+    .markdown-alert {
+        @apply mb-4 border-l-4 rounded-r-lg p-4 text-sm bg-[var(--alert-bg)] border-[var(--alert-border)];
+    }
+
+    /* 标题样式 */
+    .markdown-alert-title {
+        @apply flex items-center font-bold mb-2 text-[var(--alert-color)];
+    }
+
+    /* 内容最后一段不留 margin */
+    .markdown-alert>*:last-child {
+        @apply mb-0;
+    }
+
+    /* --- 图标通用设置 (Emoji) --- */
+    .markdown-alert-title::before {
+        @apply inline-block mr-2 text-lg leading-none not-italic;
+        /* 强制使用 Emoji 字体，防止被系统字体覆盖 */
+        font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+    }
+
+    /* --- 各类型定义 (颜色变量 + Emoji Content) --- */
+
+    /* 1. Important (紫色) -> 💬 */
+    .markdown-alert-important {
+        --alert-color: #7e22ce;
+        /* purple-700 */
+        --alert-bg: #faf5ff;
+        /* purple-50 */
+        --alert-border: #a855f7;
+        /* purple-500 */
+
+        &:where(.dark, .dark *) {
+            --alert-color: #d8b4fe;
+            --alert-bg: #3b0764;
+            --alert-border: #9333ea;
+        }
+    }
+
+    .markdown-alert-important .markdown-alert-title::before {
+        content: "💬";
+    }
+
+    /* 2. Note (蓝色) -> ℹ️ */
+    .markdown-alert-note {
+        --alert-color: #1d4ed8;
+        /* blue-700 */
+        --alert-bg: #eff6ff;
+        /* blue-50 */
+        --alert-border: #3b82f6;
+        /* blue-500 */
+
+        &:where(.dark, .dark *) {
+            --alert-color: #93c5fd;
+            --alert-bg: #172554;
+            --alert-border: #2563eb;
+        }
+    }
+
+    .markdown-alert-note .markdown-alert-title::before {
+        content: "ℹ️";
+    }
+
+    /* 3. Tip (绿色) -> 💡 */
+    .markdown-alert-tip {
+        --alert-color: #15803d;
+        /* green-700 */
+        --alert-bg: #f0fdf4;
+        /* green-50 */
+        --alert-border: #22c55e;
+        /* green-500 */
+
+        &:where(.dark, .dark *) {
+            --alert-color: #86efac;
+            --alert-bg: #052e16;
+            --alert-border: #16a34a;
+        }
+    }
+
+    .markdown-alert-tip .markdown-alert-title::before {
+        content: "💡";
+    }
+
+    /* 4. Warning (橙色) -> ⚠️ */
+    .markdown-alert-warning {
+        --alert-color: #c2410c;
+        /* orange-700 */
+        --alert-bg: #fff7ed;
+        /* orange-50 */
+        --alert-border: #f97316;
+        /* orange-500 */
+
+        &:where(.dark, .dark *) {
+            --alert-color: #fdba74;
+            --alert-bg: #431407;
+            --alert-border: #ea580c;
+        }
+    }
+
+    .markdown-alert-warning .markdown-alert-title::before {
+        content: "⚠️";
+    }
+
+    /* 5. Caution (红色) -> 🛑 */
+    .markdown-alert-caution {
+        --alert-color: #b91c1c;
+        /* red-700 */
+        --alert-bg: #fef2f2;
+        /* red-50 */
+        --alert-border: #ef4444;
+        /* red-500 */
+
+        &:where(.dark, .dark *) {
+            --alert-color: #fca5a5;
+            --alert-bg: #450a0a;
+            --alert-border: #dc2626;
+        }
+    }
+
+    .markdown-alert-caution .markdown-alert-title::before {
+        content: "🛑";
     }
 }

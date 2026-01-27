@@ -6,6 +6,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import pagefind from "astro-pagefind";
+import { remarkAlert } from 'remark-github-blockquote-alert';
 const options = {
 	// Specify the theme to use or a custom theme json, in our case
 	// it will be a moonlight-II theme from
@@ -38,7 +39,7 @@ export default defineConfig({
 		syntaxHighlight: false,
 		// Disable syntax built-in syntax hightlighting from astro
 		rehypePlugins: [[rehypePrettyCode, options]],
-		remarkPlugins: [remarkReadingTime]
+		remarkPlugins: [remarkAlert, remarkReadingTime]
 	},
 
 	integrations: [react(), sitemap(), pagefind({
