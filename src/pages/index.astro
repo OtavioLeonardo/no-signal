@@ -2,9 +2,10 @@
 import { AppConfig } from '@/utils/AppConfig';
 import Base from '@/layouts/Base.astro';
 import Hero from '@/components/Hero.astro';
+import Section from '@/components/Section.astro'; // ✅ 1. 記得引入這個
 import LatestPosts from '@/components/LatestPosts.astro';
 import { sortPostsByDate } from '@/utils/data.util';
-import { MarkdownInstance } from 'astro';
+import type { MarkdownInstance } from 'astro'; // 修正類型引用
 
 const { title } = AppConfig;
 const { description } = AppConfig;
@@ -14,9 +15,47 @@ const allPosts = Object.values(
 ) as MarkdownInstance<any>[];
 allPosts.sort(sortPostsByDate);
 const latestPosts = allPosts.slice(0, 3);
+
+// ✅ 2. 在這裡手動定義你想要顯示的「常用標籤」
+// name: 顯示的名字, slug: 標籤對應的網址路徑
+const popularTags = [
+    { name: '音樂教學', slug: '音樂教學' },
+    { name: '攝影', slug: '攝影' },
+    { name: '個人思考', slug: '個人思考' },
+];
 ---
 
 <Base head={{ title, description }}>
 	<Hero />
+
+    {/* ✅ 3. 在 Hero 和 LatestPosts 之間插入標籤區塊 */}
+    <Section>
+        <div class="py-8 border-b border-stone-200 dark:border-stone-800">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="text-xl">🏷️</span>
+                <h3 class="font-bold text-lg text-stone-800 dark:text-stone-200">
+                    Explore Topics
+                </h3>
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+                {popularTags.map((tag) => (
+                    <a 
+                        href={`/tags/${tag.slug}`} 
+                        class="px-4 py-1.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 text-sm font-medium hover:bg-orange-500 hover:text-white dark:hover:bg-orange-600 dark:hover:text-white transition-all transform hover:-translate-y-0.5"
+                    >
+                        #{tag.name}
+                    </a>
+                ))}
+                
+                {/* 可選：如果你有一個「所有標籤」的頁面，可以加這一個按鈕
+                   <a href="/tags" class="px-4 py-1.5 text-sm text-stone-400 hover:text-orange-500 transition-colors">
+                       All Tags →
+                   </a>
+                */}
+            </div>
+        </div>
+    </Section>
+
 	<LatestPosts posts={latestPosts} />
 </Base>
