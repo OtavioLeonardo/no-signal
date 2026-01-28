@@ -1,0 +1,24 @@
+---
+layout: ../../layouts/post.astro
+title: Spa-Francorchamps
+pubDate: 2026-01-28
+description: pa GT3 練習賽覆盤：解決圈速不穩定及提升高速彎表現的關鍵策略。
+author: "Otavio"
+excerpt: 目標推進至 2:23，目前主要是對於油門的把握以及對於剎車點的執行力有問題。
+image:
+  src:
+  alt:
+tags: ["LMU", "賽道分析"]
+---
+
+[![spa](https://upload.wikimedia.org/wikipedia/commons/5/54/Spa-Francorchamps_of_Belgium.svg)](https://otavioleonardo.github.io/lmu-pitwall/track_notes_editor.html?track=spa)
+
+### 2026-01-28
+
+- Eau Rouge 要更大膽：這是免費的時間。隻要方向打得准，不要怕，車子在高速下會被壓在地面上。少鬆油門，直道尾速就能提高 3-5 km/h，圈速直接快 0.5-1 秒。
+
+![eau_rouge_throttle](image/eau_rouge_throttle.png)
+
+- Les Combes 的連續彎找准剎車點：這是**最不穩定的地方**。固定你的剎車點，這能讓你在後面的下坡彎道中更有節奏感。
+
+- Pouhon (普宏彎)：這是中速彎的考驗。最低速是 150 km/h，==其實至少能到 170==，嘗試保持在三檔或四檔（取決於齒比），用更平滑的轉向輸入，不要在彎中反覆修正方向。
