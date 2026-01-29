@@ -95,7 +95,7 @@ export default config({
                         image: {
                             // ✅ 建议把日记图片单独放一个文件夹，保持整洁
                             directory: 'src/assets/images/diary',
-                            publicPath: '@/assets/images/diary/',
+                            publicPath: '../../assets/images/diary/',
                         }
                     }
                 }),
