@@ -4,35 +4,42 @@ import Section from '@/components/Section.astro';
 import Tag from '@/components/Tag.astro';
 import Base from '@/layouts/Base.astro';
 import { AppConfig } from '@/utils/AppConfig';
-import { MarkdownInstance } from 'astro';
+// ✅ 1. 引入新 API
+import { getCollection } from 'astro:content';
 
-const { title } = AppConfig;
-const { description } = AppConfig;
+const { title, description } = AppConfig;
 
-const allPosts = Object.values(
-	import.meta.glob('../posts/*.md', { eager: true })
-) as MarkdownInstance<any>[];
-const allTags = allPosts.map((post) => post.frontmatter.tags).flat();
-const uniqueTags: Set<string> = new Set(allTags);
-let tagMap: Record<string, number> = {};
+// ✅ 2. 获取所有文章
+const allPosts = await getCollection('posts');
 
-[...uniqueTags].forEach((tag) => {
-	const count = allTags.filter((t) => t === tag).length;
-	tagMap[tag] = count;
+// ✅ 3. 统计标签数量
+const tagMap: Record<string, number> = {};
+
+allPosts.forEach((post) => {
+    // 确保 tags 存在再遍历
+    post.data.tags?.forEach((tag) => {
+        if (tagMap[tag]) {
+            tagMap[tag]++;
+        } else {
+            tagMap[tag] = 1;
+        }
+    });
 });
 
-tagMap = Object.fromEntries(Object.entries(tagMap).sort((a, b) => b[1] - a[1]));
+// ✅ 4. 排序：数量多的排前面
+const sortedTags = Object.entries(tagMap).sort((a, b) => b[1] - a[1]);
 ---
 
 <Base head={{ title, description }}>
 	<Section><Heading title="Posts by Tag" /></Section>
 	<div class="mx-auto grid w-full max-w-screen-md grid-cols-1 gap-x-6 px-4 md:grid-cols-2 md:px-0">
 		{
-			Object.entries(tagMap).map(([tag, count]) => (
+			sortedTags.map(([tag, count]) => (
 				<a
 					class="group row-span-1 flex justify-between py-2 hover:text-orange-600"
 					href={`/tags/${tag}`}
 				>
+                    {/* 这里 Tag 组件如果还需要 props 调整，请确保 Tag 组件也没问题 */}
 					<Tag tag={tag} />
 					<p>{count}</p>
 				</a>

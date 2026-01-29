@@ -2,16 +2,24 @@
 import { formatDate } from '@/utils/data.util';
 import Tags from './Tags.astro';
 import PinnedBadge from './PinnedBadge.astro';
+// ✅ 1. 引入新类型
+import type { CollectionEntry } from 'astro:content';
 
 interface Props {
-	post: any;
+    // ✅ 2. 这里的类型改成 posts 集合的条目
+	post: CollectionEntry<'posts'>;
 }
 
 const { post } = Astro.props;
-const isPinned = post.frontmatter.isPinned === true;
+
+// ✅ 3. 数据都在 data 里，不在 frontmatter 里了
+const isPinned = post.data.isPinned === true;
+
+// ✅ 4. 链接需要手动拼接
+const postUrl = `/posts/${post.slug}`;
 ---
 
-<a href={post.url}>
+<a href={postUrl}>
 	<div
 		class="h-full rounded-2xl bg-stone-200/50 from-orange-900 via-amber-700 to-white p-[1px] text-sm shadow-[inset_0_0_0_1px_rgba(255,255,255,0.4)] hover:bg-gradient-to-r dark:bg-gray-900"
 	>
@@ -22,17 +30,23 @@ const isPinned = post.frontmatter.isPinned === true;
 				<div class="flex flex-col justify-between gap-2 pb-4 text-xs">
 					<div class="flex items-center gap-2">
 						{isPinned && <PinnedBadge size="sm" />}
-						<p>{formatDate(post.frontmatter.pubDate)}</p>
+                        {/* ✅ 修改日期读取方式 */}
+						<p>{formatDate(post.data.pubDate)}</p>
 					</div>
 					<div>
-						<p class="font-bold">{post.frontmatter.minutesRead}</p>
+                        {/* ⚠️ 阅读时间在 Markdoc 模式下需要特殊处理，先注释掉防报错 */}
+						{/* <p class="font-bold">{post.frontmatter.minutesRead}</p> */}
 					</div>
 				</div>
 
-				<p class="pb-4 text-lg font-bold">{post.frontmatter.title}</p>
+                {/* ✅ 修改标题读取方式 */}
+				<p class="pb-4 text-lg font-bold">{post.data.title}</p>
 
-				<Tags tags={post.frontmatter.tags} />
-				<p class="line-clamp-6 pt-4">{post.frontmatter.excerpt}</p>
+                {/* ✅ 修改标签读取方式 */}
+				<Tags tags={post.data.tags} />
+                
+                {/* ✅ 修改摘要读取方式 */}
+				<p class="line-clamp-6 pt-4">{post.data.excerpt}</p>
 			</div>
 			<p class="pt-4 underline">read more →</p>
 		</div>

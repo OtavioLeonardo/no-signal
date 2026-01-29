@@ -3,21 +3,24 @@ import { AppConfig } from '@/utils/AppConfig';
 import Base from '@/layouts/Base.astro';
 import Section from '@/components/Section.astro';
 import Heading from '@/components/Heading.astro';
-import type { MarkdownInstance } from 'astro';
+// ✅ 1. 引入 API
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
 
 const { title } = AppConfig;
 const { description } = AppConfig;
 
-const allDiaries = Object.values(
-    import.meta.glob('./*.md', { eager: true })
-) as MarkdownInstance<any>[];
+// ✅ 2. 改用 getCollection 获取 'diary' 集合
+const allDiaries = await getCollection('diary');
 
+// ✅ 3. 排序逻辑 (注意：用 .data.pubDate)
 allDiaries.sort((a, b) => 
-    new Date(b.frontmatter.pubDate).valueOf() - new Date(a.frontmatter.pubDate).valueOf()
+    b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
 
+// ✅ 4. 分组逻辑 (注意：用 .data.pubDate)
 const groupedDiaries = allDiaries.reduce((acc, diary) => {
-    const date = new Date(diary.frontmatter.pubDate);
+    const date = new Date(diary.data.pubDate);
     const year = date.getFullYear().toString();
     const month = date.toLocaleString('en-US', { month: 'long' });
 
@@ -26,7 +29,7 @@ const groupedDiaries = allDiaries.reduce((acc, diary) => {
     
     acc[year][month].push(diary);
     return acc;
-}, {} as Record<string, Record<string, MarkdownInstance<any>[]>>);
+}, {} as Record<string, Record<string, CollectionEntry<'diary'>[]>>);
 
 const years = Object.keys(groupedDiaries).sort((a, b) => Number(b) - Number(a));
 
@@ -47,10 +50,7 @@ const monthOrder: Record<string, number> = {
     <Section>
         <div class="space-y-12">
             {years.map(year => {
-                // ✅ 修复 1: 加了 !，告诉 TS 这个年份的数据一定存在
                 const yearData = groupedDiaries[year]!;
-                
-                // ✅ 修复 2: 加了 ( ?? 0 )，防止排序时 TS 报错
                 const months = Object.keys(yearData).sort((a, b) => (monthOrder[b] ?? 0) - (monthOrder[a] ?? 0));
 
                 return (
@@ -66,27 +66,26 @@ const monthOrder: Record<string, number> = {
                                 </h3>
 
                                 <div class="space-y-3">
-                                    {/* ✅ 修复 3: 加了 !，告诉 TS 这个月份的数据一定存在 */}
                                     {yearData[month]!.map((post) => (
                                         <a 
-                                            href={post.url} 
+                                            /* ✅ 5. 链接修改：手动拼接 /diary/ + slug */
+                                            href={`/diary/${post.slug}`} 
                                             class="group flex items-start p-3 -mx-3 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800/50 transition-colors"
                                         >
                                             <span class="shrink-0 font-mono text-base font-bold text-stone-500 bg-stone-200 dark:bg-stone-800 px-2 py-0.5 rounded min-w-[2.5rem] text-center mt-0.5">
-                                                {new Date(post.frontmatter.pubDate).getDate().toString().padStart(2, '0')}
+                                                {/* ✅ 6. 数据读取修改：frontmatter -> data */}
+                                                {new Date(post.data.pubDate).getDate().toString().padStart(2, '0')}
                                             </span>
 
-                                            <span class="shrink-0 mx-3 text-stone-300 font-light mt-0.5">
-                                                -
-                                            </span>
+                                            <span class="shrink-0 mx-3 text-stone-300 font-light mt-0.5">-</span>
 
                                             <div class="flex flex-col min-w-0">
                                                 <span class="font-bold text-stone-800 dark:text-stone-200 group-hover:text-orange-600 transition-colors truncate">
-                                                    {post.frontmatter.title}
+                                                    {post.data.title}
                                                 </span>
                                                 
                                                 <p class="text-sm text-stone-500 dark:text-stone-400 mt-1 line-clamp-2 leading-relaxed">
-                                                    {post.frontmatter.description}
+                                                    {post.data.description}
                                                 </p>
                                             </div>
                                         </a>

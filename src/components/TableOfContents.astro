@@ -7,11 +7,12 @@ interface Props {
 
 const { headings } = Astro.props;
 
-// 过滤掉 H1 和 H4+
-const toc = headings.filter((h) => h.depth > 1 && h.depth < 4);
+// ✅ 修复点：加了 (headings || [])
+// 如果 headings 是 undefined，就用空数组代替，防止 .filter 报错
+const toc = (headings || []).filter((h) => h.depth > 1 && h.depth < 4);
 ---
 
-{/* ✅ 核心修改：只有当 toc 数组有内容时，才渲染下面的 HTML */}
+{/* 只有当 toc 数组有内容时，才渲染下面的 HTML */}
 {toc.length > 0 && (
   <nav class="toc-container text-sm">
     <h2 class="font-bold text-stone-900 dark:text-stone-100 mb-4 tracking-wider uppercase text-xs">
@@ -41,10 +42,8 @@ const toc = headings.filter((h) => h.depth > 1 && h.depth < 4);
 )}
 
 <style>
-  /* 样式部分保持不变，因为如果没有 nav 元素，这些样式自然不会生效，不会有副作用 */
-  
   :global(.toc-link.active) {
-    color: #ea580c; 
+    color: #ea580c;
     font-weight: 700;
     border-left-color: #ea580c;
     background-color: #fff7ed; 
@@ -53,17 +52,14 @@ const toc = headings.filter((h) => h.depth > 1 && h.depth < 4);
   :global(html.dark .toc-link.active) {
     color: #f97316; 
     border-left-color: #f97316;
-    background-color: #292524; 
+    background-color: #292524;
   }
 </style>
 
 <script>
-  // 脚本部分也保持不变。
-  // 如果页面上没有 .toc-link 元素（即目录没渲染），这段脚本运行了也不会报错，只是什么都不做。
   document.addEventListener('DOMContentLoaded', () => {
     const tocLinks = document.querySelectorAll('.toc-link');
     
-    // 如果没有目录链接，直接退出，省点性能
     if (tocLinks.length === 0) return;
 
     const headings = document.querySelectorAll('article h2, article h3');
@@ -83,7 +79,7 @@ const toc = headings.filter((h) => h.depth > 1 && h.depth < 4);
           if (id) {
              const activeLink = document.querySelector(`.toc-link[href="#${CSS.escape(id)}"]`);
              if (activeLink) {
-               activeLink.classList.add('active');
+                activeLink.classList.add('active');
              }
           }
         }

@@ -3,34 +3,37 @@ import { AppConfig } from '@/utils/AppConfig';
 import Base from '@/layouts/Base.astro';
 import Section from '@/components/Section.astro';
 import Heading from '@/components/Heading.astro';
-import { sortPostsByDate } from '@/utils/data.util';
-import type { MarkdownInstance } from 'astro';
+// ✅ 1. 引入 Content Collections API 和类型
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
 
 const { title } = AppConfig;
 const { description } = AppConfig;
 
-const allPosts = Object.values(
-	import.meta.glob('./*.md', { eager: true })
-) as MarkdownInstance<any>[];
+// ✅ 2. 获取所有文章 (自动支持 .mdoc 和 .md)
+const allPosts = await getCollection('posts');
 
-allPosts.sort(sortPostsByDate);
+// 排序：按发布时间倒序
+allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
+// ✅ 3. 分组逻辑更新 (类型改为 CollectionEntry)
 const groupedPosts = allPosts.reduce((acc, post) => {
-    const year = new Date(post.frontmatter.pubDate).getFullYear().toString();
+    // 数据都在 .data 里
+    const year = new Date(post.data.pubDate).getFullYear().toString();
     if (!acc[year]) {
         acc[year] = [];
     }
     acc[year].push(post);
     return acc;
-}, {} as Record<string, MarkdownInstance<any>[]>);
+}, {} as Record<string, CollectionEntry<'posts'>[]>);
 
 const years = Object.keys(groupedPosts).sort((a, b) => Number(b) - Number(a));
 ---
 
 <Base head={{ title, description }}>
-	<Section><Heading title="Posts" /></Section>
-	
-	<Section>
+    <Section><Heading title="Posts" /></Section>
+    
+    <Section>
         {years.map((year) => (
             <div class="mb-10 last:mb-0">
                 <h2 class="text-3xl font-bold text-stone-200 dark:text-stone-700 mb-6 pl-2 border-l-4 border-orange-500">
@@ -38,24 +41,25 @@ const years = Object.keys(groupedPosts).sort((a, b) => Number(b) - Number(a));
                 </h2>
 
                 <div class="flex flex-col">
-                    {/* ✅ 修复: 加了 ! */}
                     {groupedPosts[year]!.map((post) => (
                         <a 
-                            href={post.url} 
+                            /* ✅ 4. 链接修复：必须手动拼接 slug */
+                            href={`/posts/${post.slug}`} 
                             class="group block py-4 border-b border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-900/50 transition-colors px-3 -mx-3 rounded-lg"
                         >
                             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-1">
+                                {/* ✅ 5. 数据读取修复：frontmatter -> data */}
                                 <h3 class="text-lg font-bold text-stone-800 dark:text-stone-200 group-hover:text-orange-600 transition-colors">
-                                    {post.frontmatter.title}
+                                    {post.data.title}
                                 </h3>
                                 
                                 <span class="font-mono text-sm text-stone-400 shrink-0">
-                                    {new Date(post.frontmatter.pubDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                    {new Date(post.data.pubDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                 </span>
                             </div>
 
                             <div class="mt-1.5 flex flex-wrap gap-2">
-                                {post.frontmatter.tags && post.frontmatter.tags.map((tag: string) => (
+                                {post.data.tags && post.data.tags.map((tag: string) => (
                                     <span class="text-xs font-mono px-1.5 py-0.5 rounded-md bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 border border-stone-200 dark:border-stone-700">
                                         #{tag}
                                     </span>
@@ -63,12 +67,12 @@ const years = Object.keys(groupedPosts).sort((a, b) => Number(b) - Number(a));
                             </div>
 
                             <p class="text-sm text-stone-500 dark:text-stone-400 mt-2 line-clamp-1">
-                                {post.frontmatter.description}
+                                {post.data.description}
                             </p>
                         </a>
                     ))}
                 </div>
             </div>
         ))}
-	</Section>
+    </Section>
 </Base>

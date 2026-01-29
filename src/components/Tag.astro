@@ -7,10 +7,18 @@ interface Props {
 const { tag, withHref } = Astro.props;
 ---
 
-<span
-	class={`mb-2 mr-2 rounded-xl bg-stone-600 px-3 py-1 text-xs font-bold uppercase text-white group-hover:bg-stone-500 ${
-		withHref ? 'hover:bg-stone-500' : ''
-	}`}
->
-	#{tag}
-</span>
+{
+    /* 如果 withHref 为真，渲染成 <a> 标签；否则渲染成 <span> */
+    withHref ? (
+        <a
+            href={`/tags/${tag}`}
+            class="mb-2 mr-2 rounded-xl bg-stone-600 px-3 py-1 text-xs font-bold uppercase text-white hover:bg-stone-500"
+        >
+            #{tag}
+        </a>
+    ) : (
+        <span class="mb-2 mr-2 rounded-xl bg-stone-600 px-3 py-1 text-xs font-bold uppercase text-white">
+            #{tag}
+        </span>
+    )
+}

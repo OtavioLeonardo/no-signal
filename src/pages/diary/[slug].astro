@@ -1,0 +1,20 @@
+---
+import { getCollection } from 'astro:content';
+// 你可以复用 PostLayout，也可以专门写一个 DiaryLayout
+import PostLayout from '../../layouts/diary.astro'; 
+
+export async function getStaticPaths() {
+  const diaryEntries = await getCollection('diary');
+  return diaryEntries.map(entry => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+---
+
+<PostLayout frontmatter={entry.data}>
+  <Content />
+</PostLayout>

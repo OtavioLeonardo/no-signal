@@ -2,22 +2,40 @@
 import { AppConfig } from '@/utils/AppConfig';
 import Base from '@/layouts/Base.astro';
 import Hero from '@/components/Hero.astro';
-import Section from '@/components/Section.astro'; // ✅ 1. 記得引入這個
+import Section from '@/components/Section.astro';
 import LatestPosts from '@/components/LatestPosts.astro';
-import { sortPostsByDate } from '@/utils/data.util';
-import type { MarkdownInstance } from 'astro'; // 修正類型引用
+// ✅ 引入 Astro 专门读取内容的 API
+import { getCollection } from 'astro:content'; 
 
 const { title } = AppConfig;
 const { description } = AppConfig;
 
-const allPosts = Object.values(
-	import.meta.glob('./posts/*.md', { eager: true })
-) as MarkdownInstance<any>[];
-allPosts.sort(sortPostsByDate);
+// ✅ 1. 读取数据
+const allPosts = await getCollection('posts');
+
+// ✅ 2. 排序逻辑升级：先置顶，后按时间
+allPosts.sort((a, b) => {
+    // 获取置顶状态 (如果没设置，默认为 false)
+    const isAPinned = a.data.isPinned || false;
+    const isBPinned = b.data.isPinned || false;
+
+    // 如果 A 置顶了，B 没置顶，A 排前面
+    if (isAPinned && !isBPinned) {
+        return -1;
+    }
+    // 如果 B 置顶了，A 没置顶，B 排前面
+    if (!isAPinned && isBPinned) {
+        return 1;
+    }
+
+    // 如果大家都一样（都置顶或都不置顶），就按发布时间倒序
+    return b.data.pubDate.valueOf() - a.data.pubDate.valueOf();
+});
+
+// 取前 3 篇 (此时置顶的文章一定会包含在内，除非你置顶了超过3篇)
 const latestPosts = allPosts.slice(0, 3);
 
-// ✅ 2. 在這裡手動定義你想要顯示的「常用標籤」
-// name: 顯示的名字, slug: 標籤對應的網址路徑
+// 常用标签配置
 const popularTags = [
     { name: '音樂教學', slug: '音樂教學' },
     { name: '攝影', slug: '攝影' },
@@ -27,9 +45,9 @@ const popularTags = [
 ---
 
 <Base head={{ title, description }}>
-	<Hero />
+    <Hero />
 
-    {/* ✅ 3. 在 Hero 和 LatestPosts 之間插入標籤區塊 */}
+    {/* 标签区块 */}
     <Section>
         <div class="py-8 border-b border-stone-200 dark:border-stone-800">
             <div class="flex items-center gap-2 mb-4">
@@ -48,15 +66,9 @@ const popularTags = [
                         #{tag.name}
                     </a>
                 ))}
-                
-                {/* 可選：如果你有一個「所有標籤」的頁面，可以加這一個按鈕
-                   <a href="/tags" class="px-4 py-1.5 text-sm text-stone-400 hover:text-orange-500 transition-colors">
-                       All Tags →
-                   </a>
-                */}
             </div>
         </div>
     </Section>
 
-	<LatestPosts posts={latestPosts} />
+    <LatestPosts posts={latestPosts} />
 </Base>

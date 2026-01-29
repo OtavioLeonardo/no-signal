@@ -1,0 +1,84 @@
+---
+import Base from '@/layouts/Base.astro';
+import Section from '@/components/Section.astro';
+import { AppConfig } from '@/utils/AppConfig';
+
+// 接收 frontmatter 数据
+const { frontmatter } = Astro.props;
+
+// 格式化日期：例如 "2026年1月27日 星期二"
+const formattedDate = new Date(frontmatter.pubDate).toLocaleDateString('zh-CN', {
+	year: 'numeric',
+	month: 'long',
+	day: 'numeric',
+	weekday: 'long'
+});
+---
+
+<Base head={{ title: frontmatter.title, description: frontmatter.description }}>
+	<Section>
+		{/* 顶部导航：简单的返回按钮 */}
+		<div class="py-6">
+			<a 
+				href="/diary" 
+				class="inline-flex items-center gap-2 text-sm text-stone-500 hover:text-orange-600 transition-colors font-mono"
+			>
+				<span>←</span> <span>Back to Diary</span>
+			</a>
+		</div>
+
+		<article class="mx-auto w-full max-w-2xl">
+			{/* 1. 日记头部信息 */}
+			<header class="mb-10 text-center">
+				<time class="block font-mono text-stone-400 text-sm mb-3">
+					{formattedDate}
+				</time>
+				<h1 class="text-3xl font-bold text-stone-800 dark:text-stone-100 leading-tight">
+					{frontmatter.title}
+				</h1>
+			</header>
+
+			{/* 2. 那个“恒定不变”的摘要 - 做成一个有趣的提示框 */}
+			{frontmatter.excerpt && (
+				<div class="mb-10 rounded-lg border border-dashed border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/50 p-4 text-center">
+					<p class="text-sm italic text-stone-500 dark:text-stone-400">
+						{frontmatter.excerpt}
+					</p>
+				</div>
+			)}
+
+			{/* 3. 配图 (如果有) */}
+			{frontmatter.image?.src && (
+				<div class="mb-10 -mx-4 sm:mx-0">
+					<img 
+						src={frontmatter.image.src} 
+						alt={frontmatter.image.alt || frontmatter.title} 
+						class="w-full h-auto rounded-xl shadow-lg dark:shadow-none dark:opacity-90"
+					/>
+					{frontmatter.image.alt && (
+						<p class="mt-2 text-center text-xs text-stone-400 font-mono">
+							▲ {frontmatter.image.alt}
+						</p>
+					)}
+				</div>
+			)}
+
+			{/* 4. 正文内容 */}
+			{/* prose-lg 稍微大一点字号，读起来更舒服；prose-stone 配合你的主题色 */}
+			<div class="prose prose-lg prose-stone dark:prose-invert max-w-none 
+				prose-headings:font-bold prose-headings:tracking-tight
+				prose-a:text-orange-600 prose-a:no-underline hover:prose-a:underline
+				prose-img:rounded-lg prose-img:shadow-md
+				marker:text-orange-500">
+				
+				<slot />
+				
+			</div>
+
+			{/* 底部装饰：结束符 */}
+			<div class="mt-16 flex justify-center text-stone-300 dark:text-stone-700 text-xl">
+				***
+			</div>
+		</article>
+	</Section>
+</Base>

@@ -4,47 +4,49 @@ import Card from '@/components/Card.astro';
 import Base from '@/layouts/Base.astro';
 import Heading from '@/components/Heading.astro';
 import { AppConfig } from '@/utils/AppConfig';
-import type { MarkdownInstance } from 'astro';
-import { sortPostsByDate } from '@/utils/data.util';
+// ✅ 1. 引入新 API
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
 
-export async function getStaticPaths(): Promise<any> {
-	const allPosts = Object.values(
-		import.meta.glob('../posts/*.md', { eager: true })
-	) as MarkdownInstance<any>[];
+export async function getStaticPaths() {
+    // ✅ 2. 获取所有文章
+    const allPosts = await getCollection('posts');
+    
+    // ✅ 3. 提取所有不重复的标签
+    // 注意：数据在 post.data.tags 里
+    const allTags = new Set<string>();
+    allPosts.forEach(post => {
+        post.data.tags?.forEach(tag => allTags.add(tag));
+    });
 
-	const allTags: Set<string> = new Set(
-		allPosts.map((post: MarkdownInstance<Record<string, any>>) => post.frontmatter.tags).flat()
-	);
+    // ✅ 4. 生成页面路径
+    return [...allTags].map((tag) => {
+        // 过滤出包含当前标签的文章
+        const filteredPosts = allPosts.filter((post) =>
+            post.data.tags?.includes(tag)
+        );
 
-	return [...allTags].map((tag) => {
-		const filteredPosts = allPosts.filter((post: MarkdownInstance<Record<string, any>>) =>
-			post.frontmatter.tags.includes(tag)
-		);
+        // 按日期排序 (最新的在前)
+        filteredPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
-		// Sort posts by pinned status and date
-		filteredPosts.sort(sortPostsByDate);
-
-		return {
-			params: { tag: tag },
-			props: {
-				posts: filteredPosts
-			}
-		};
-	});
+        return {
+            params: { tag },
+            props: { posts: filteredPosts }
+        };
+    });
 }
 
 interface Props {
-	posts: MarkdownInstance<Record<string, any>>[];
+    // ✅ 5. 更新类型定义
+	posts: CollectionEntry<'posts'>[];
 }
 
 const { tag } = Astro.params;
-const title = AppConfig.title;
-const description = AppConfig.description;
-
 const { posts } = Astro.props;
+const { title, description } = AppConfig;
 ---
 
-<Base head={{ title, description }}>
+<Base head={{ title: `Tag: ${tag}`, description }}>
 	<Section>
 		<Heading title={`Posts with #${tag}`} />
 		<div class="pt-2 text-center">
@@ -53,12 +55,9 @@ const { posts } = Astro.props;
 	</Section>
 	
 	<Section>
-		{/* ✅ 修改這裡：加入 Grid 容器，在大屏幕上顯示 3 列 */}
 		<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 			{
-				posts.map((post: any) => (
-					// 這裡不需要 mb-4 了，因為外面的 gap-6 負責間距
-					// 也不需要 basis-1，Grid 會自動處理寬度
+				posts.map((post) => (
 					<div class="h-full"> 
 						<Card post={post} />
 					</div>
