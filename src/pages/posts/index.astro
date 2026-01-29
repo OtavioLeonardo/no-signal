@@ -3,20 +3,16 @@ import { AppConfig } from '@/utils/AppConfig';
 import Base from '@/layouts/Base.astro';
 import Section from '@/components/Section.astro';
 import Heading from '@/components/Heading.astro';
-// ✅ 1. 引入 Content Collections API 和类型
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 
 const { title } = AppConfig;
 const { description } = AppConfig;
 
-// ✅ 2. 获取所有文章 (自动支持 .mdoc 和 .md)
 const allPosts = await getCollection('posts');
 
-// 排序：按发布时间倒序
 allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
-// ✅ 3. 分组逻辑更新 (类型改为 CollectionEntry)
 const groupedPosts = allPosts.reduce((acc, post) => {
     // 数据都在 .data 里
     const year = new Date(post.data.pubDate).getFullYear().toString();
@@ -43,12 +39,10 @@ const years = Object.keys(groupedPosts).sort((a, b) => Number(b) - Number(a));
                 <div class="flex flex-col">
                     {groupedPosts[year]!.map((post) => (
                         <a 
-                            /* ✅ 4. 链接修复：必须手动拼接 slug */
                             href={`/posts/${post.slug}`} 
                             class="group block py-4 border-b border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-900/50 transition-colors px-3 -mx-3 rounded-lg"
                         >
                             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-1">
-                                {/* ✅ 5. 数据读取修复：frontmatter -> data */}
                                 <h3 class="text-lg font-bold text-stone-800 dark:text-stone-200 group-hover:text-orange-600 transition-colors">
                                     {post.data.title}
                                 </h3>

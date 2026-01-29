@@ -3,22 +3,15 @@ import { AppConfig } from '@/utils/AppConfig';
 import Base from '@/layouts/Base.astro';
 import Section from '@/components/Section.astro';
 import Heading from '@/components/Heading.astro';
-// ✅ 1. 引入 API
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 
 const { title } = AppConfig;
 const { description } = AppConfig;
-
-// ✅ 2. 改用 getCollection 获取 'diary' 集合
 const allDiaries = await getCollection('diary');
-
-// ✅ 3. 排序逻辑 (注意：用 .data.pubDate)
 allDiaries.sort((a, b) => 
     b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
-
-// ✅ 4. 分组逻辑 (注意：用 .data.pubDate)
 const groupedDiaries = allDiaries.reduce((acc, diary) => {
     const date = new Date(diary.data.pubDate);
     const year = date.getFullYear().toString();
@@ -68,12 +61,10 @@ const monthOrder: Record<string, number> = {
                                 <div class="space-y-3">
                                     {yearData[month]!.map((post) => (
                                         <a 
-                                            /* ✅ 5. 链接修改：手动拼接 /diary/ + slug */
                                             href={`/diary/${post.slug}`} 
                                             class="group flex items-start p-3 -mx-3 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800/50 transition-colors"
                                         >
                                             <span class="shrink-0 font-mono text-base font-bold text-stone-500 bg-stone-200 dark:bg-stone-800 px-2 py-0.5 rounded min-w-[2.5rem] text-center mt-0.5">
-                                                {/* ✅ 6. 数据读取修改：frontmatter -> data */}
                                                 {new Date(post.data.pubDate).getDate().toString().padStart(2, '0')}
                                             </span>
 

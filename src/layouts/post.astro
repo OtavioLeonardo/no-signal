@@ -6,15 +6,12 @@ import PostContent from '@/components/PostContent.astro';
 import TableOfContents from '@/components/TableOfContents.astro';
 
 const { description } = AppConfig;
-
-// ✅ 1. 接收从 [slug].astro 传过来的数据
-// 我们那里写的是 <PostLayout frontmatter={post.data}>，所以这里解构 frontmatter 是对的
 const { frontmatter, headings } = Astro.props;
 
-// ✅ 2. 安全处理：防止 image 是空的时候报错
-const heroImage = frontmatter.image 
-    ? { src: frontmatter.image.src, alt: frontmatter.image.alt } 
-    : undefined;
+
+const heroImage = frontmatter.image?.src 
+    ? { src: frontmatter.image.src, alt: frontmatter.image.alt || '' } 
+    : { src: '', alt: '' };
 ---
 
 <Base head={{ title: frontmatter.title, description }}>
@@ -22,12 +19,10 @@ const heroImage = frontmatter.image
         
         <div class="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_250px]">
             
-            {/* 左侧：文章主体 */}
             <main class="mx-auto w-full max-w-screen-md min-w-0">
                 <PostHeader
                     title={frontmatter.title}
                     author={frontmatter.author}
-                    {/* ✅ 3. 安全处理：如果 tags 是空的，给它一个空数组，防止 .filter 报错 */}
                     tags={frontmatter.tags || []}
                     minutesRead={frontmatter.minutesRead}
                     pubDate={frontmatter.pubDate}
@@ -40,7 +35,6 @@ const heroImage = frontmatter.image
                 </PostContent>
             </main>
 
-            {/* 右侧：TOC 目录 */}
             <aside class="hidden lg:block">
                 <div class="sticky top-24">
                     <TableOfContents headings={headings} />

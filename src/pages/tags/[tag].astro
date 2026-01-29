@@ -4,29 +4,20 @@ import Card from '@/components/Card.astro';
 import Base from '@/layouts/Base.astro';
 import Heading from '@/components/Heading.astro';
 import { AppConfig } from '@/utils/AppConfig';
-// ✅ 1. 引入新 API
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 
 export async function getStaticPaths() {
-    // ✅ 2. 获取所有文章
     const allPosts = await getCollection('posts');
-    
-    // ✅ 3. 提取所有不重复的标签
-    // 注意：数据在 post.data.tags 里
     const allTags = new Set<string>();
     allPosts.forEach(post => {
         post.data.tags?.forEach(tag => allTags.add(tag));
     });
-
-    // ✅ 4. 生成页面路径
     return [...allTags].map((tag) => {
-        // 过滤出包含当前标签的文章
         const filteredPosts = allPosts.filter((post) =>
             post.data.tags?.includes(tag)
         );
 
-        // 按日期排序 (最新的在前)
         filteredPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
         return {
@@ -37,13 +28,12 @@ export async function getStaticPaths() {
 }
 
 interface Props {
-    // ✅ 5. 更新类型定义
 	posts: CollectionEntry<'posts'>[];
 }
 
 const { tag } = Astro.params;
 const { posts } = Astro.props;
-const { title, description } = AppConfig;
+const { description } = AppConfig;
 ---
 
 <Base head={{ title: `Tag: ${tag}`, description }}>
