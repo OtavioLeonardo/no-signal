@@ -1,5 +1,5 @@
 // keystatic.config.ts
-import { config, fields, collection } from '@keystatic/core';
+import { config, fields, collection, singleton } from '@keystatic/core';
 
 export default config({
     storage: {
@@ -96,6 +96,32 @@ export default config({
                             // ✅ 建议把日记图片单独放一个文件夹，保持整洁
                             directory: 'src/assets/images/diary',
                             publicPath: '../../assets/images/diary/',
+                        }
+                    }
+                }),
+            },
+        }),
+    },
+    singletons: {
+        now: singleton({
+            label: 'Now 页面',
+            path: 'src/content/pages/now',
+            format: { contentField: 'content' },
+            schema: {
+                title: fields.text({
+                    label: '页面标题',
+                    defaultValue: 'Now'
+                }),
+                updatedDate: fields.date({
+                    label: '最后更新日期',
+                    defaultValue: { kind: 'today' }
+                }),
+                content: fields.markdoc({
+                    label: '正文内容 (Markdown)',
+                    options: {
+                        image: {
+                            directory: 'src/assets/images/pages',
+                            publicPath: '../../assets/images/pages/',
                         }
                     }
                 }),

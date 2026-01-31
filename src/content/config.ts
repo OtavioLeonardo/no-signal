@@ -32,9 +32,17 @@ const diary = defineCollection({
         // 但通常日记只需要简单的文本，这里暂时保持精简。
     }),
 });
+const pages = defineCollection({
+    type: 'content',
+    schema: z.object({
+        title: z.string(),
+        updatedDate: z.coerce.date(),
+    }),
+});
 
 // ✅ 3. 导出所有集合
 export const collections = {
     posts,
-    diary // 把 diary 加在这里
+    diary,
+    pages // 把 diary 加在这里
 };
