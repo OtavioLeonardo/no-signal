@@ -3,13 +3,31 @@ import { config, fields, collection, singleton } from '@keystatic/core';
 
 export default config({
     storage: {
-        kind: 'local', // 本地模式
+        kind: 'local',
+    },
+
+    // ✨ UI 配置：使用你的 nobg.png 图片
+    ui: {
+        brand: {
+            name: 'no.signal',
+            mark: () => (
+                <img
+                    src="/nobg.png"
+                    alt="no.signal Logo"
+                    height={24}
+                    width={24}
+                />
+            ),
+        },
+        // 导航分组保持不变
+        navigation: {
+            'Writing': ['posts', 'diary'],
+            'Pages': ['now'],
+        },
     },
 
     collections: {
-        // ============================================================
-        // 1. 博客文章 (Posts) - 保持你原来的配置不变
-        // ============================================================
+        // ... (保持之前的配置不变) ...
         posts: collection({
             label: '博客文章',
             slugField: 'title',
@@ -65,35 +83,26 @@ export default config({
             },
         }),
 
-        // ============================================================
-        // 2. ✅ 新增：碎碎念 (Diary)
-        // ============================================================
         diary: collection({
-            label: '碎碎念 (Diary)',
+            label: 'Diary (碎碎念)',
             slugField: 'title',
-            // ⚠️ 指向 content/diary 文件夹
             path: 'src/content/diary/*',
             format: { contentField: 'content' },
+            entryLayout: 'content',
 
             schema: {
-                // 1. 标题 (Slug)
-                title: fields.slug({ name: { label: '标题' } }),
+                title: fields.slug({ name: { label: '标题 (YYYY-MM-DD)' } }),
+                pubDate: fields.date({ label: '日期', defaultValue: { kind: 'today' } }),
 
-                // 2. 日期
-                pubDate: fields.date({ label: '日期' }),
-
-                // 3. 心情/摘要 (可选)
                 description: fields.text({
                     label: '心情/摘要',
                     multiline: true
                 }),
 
-                // 4. 正文
                 content: fields.markdoc({
                     label: '正文内容',
                     options: {
                         image: {
-                            // ✅ 建议把日记图片单独放一个文件夹，保持整洁
                             directory: 'src/assets/images/diary',
                             publicPath: '../../assets/images/diary/',
                         }
@@ -102,6 +111,7 @@ export default config({
             },
         }),
     },
+
     singletons: {
         now: singleton({
             label: 'Now 页面',
