@@ -4,14 +4,27 @@ import Section from './Section.astro';
 
 <Section>
 	<div
-		class="content prose dark:prose-invert prose-code:rounded-lg prose-code:bg-stone-800 prose-code:p-1 prose-code:text-orange-600 prose-img:rounded-lg prose-img:shadow-xl prose-img:dark:shadow-stone-800 mt-8 max-w-none text-base leading-8 text-black dark:text-white"
+		class="
+            prose prose-lg dark:prose-invert max-w-none 
+            text-gray-700 dark:text-gray-300 
+            leading-relaxed
+            
+            /* Headings */
+            prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-gray-900 dark:prose-headings:text-white
+            
+            /* Links - Apple Blue */
+            prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
+            
+            /* Code Blocks - Clean Terminal Look */
+            prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:text-sm prose-code:font-mono prose-code:text-pink-600 dark:prose-code:text-pink-400 prose-code:before:content-none prose-code:after:content-none
+            
+            /* Images */
+            prose-img:rounded-xl prose-img:shadow-sm prose-img:border prose-img:border-gray-100 dark:prose-img:border-gray-800
+            
+            /* Blockquotes */
+            prose-blockquote:border-l-4 prose-blockquote:border-gray-200 dark:prose-blockquote:border-gray-700 prose-blockquote:text-gray-500 prose-blockquote:font-normal prose-blockquote:italic
+        "
 	>
 		<slot />
 	</div>
 </Section>
-
-<!-- Tailwind doesn't fully support some of the complex CSS selectors needed for code highlighting,
-     so we need to keep some custom CSS but applied through Tailwind's plugin system -->
-<style is:global>
-	/* These styles are for code highlighting that can't be easily implemented with just Tailwind */
-</style>

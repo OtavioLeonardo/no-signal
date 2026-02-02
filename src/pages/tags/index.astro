@@ -4,15 +4,12 @@ import Section from '@/components/Section.astro';
 import Tag from '@/components/Tag.astro';
 import Base from '@/layouts/Base.astro';
 import { AppConfig } from '@/utils/AppConfig';
-// ✅ 1. 引入新 API
 import { getCollection } from 'astro:content';
 
 const { title, description } = AppConfig;
 
-// ✅ 2. 获取所有文章
 const allPosts = await getCollection('posts');
 
-// ✅ 3. 统计标签数量
 const tagMap: Record<string, number> = {};
 
 allPosts.forEach((post) => {
@@ -26,7 +23,6 @@ allPosts.forEach((post) => {
     });
 });
 
-// ✅ 4. 排序：数量多的排前面
 const sortedTags = Object.entries(tagMap).sort((a, b) => b[1] - a[1]);
 ---
 

@@ -9,11 +9,11 @@ interface Props {
 const { tags, withHref } = Astro.props;
 ---
 
-<div class="flex flex-wrap">
+<div class="flex flex-wrap items-center">
 	{
-		tags.map((tag: string) => {
-			const element = <Tag tag={tag} withHref={withHref} />;
-			return withHref ? <a href={`/tags/${tag}`}>{element}</a> : element;
-		})
+		tags.map((tag: string) => (
+            // Tag 组件内部已经处理了 href 逻辑，这里只需传递属性，不需要外层再包裹 a 标签，防止嵌套错误
+            <Tag tag={tag} withHref={withHref} />
+		))
 	}
 </div>

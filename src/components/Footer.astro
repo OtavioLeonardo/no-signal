@@ -1,22 +1,22 @@
 ---
 import Section from './Section.astro';
-
 const year = new Date();
 ---
 
 <Section>
-	<footer class="text-center">
-		<div class="pb-4">
-			<a class="underline hover:text-orange-600" href="/rss.xml">RSS</a> - <a
-				class="underline hover:text-orange-600"
-				href="/sitemap-index.xml">Sitemap</a
-			> - <a class="underline hover:text-orange-600" href="/tags">Tags</a>
+	<footer class="py-12 mt-10 border-t border-gray-100 dark:border-white/5 text-center text-sm text-gray-400 dark:text-gray-500">
+		<div class="flex justify-center gap-6 mb-4 font-medium">
+			<a class="hover:text-black dark:hover:text-white transition-colors" href="/rss.xml">RSS</a>
+			<a class="hover:text-black dark:hover:text-white transition-colors" href="/sitemap-index.xml">Sitemap</a>
+			<a class="hover:text-black dark:hover:text-white transition-colors" href="/tags">Tags</a>
 		</div>
-		© {year.getFullYear()} - <a class="underline hover:text-orange-600" href="/imprint/">Imprint</a
-		> - made with ♥️ by <a
-			class="underline hover:text-orange-600"
-			href="https://www.nicdun.dev"
-			target="_blank">nicdun.dev</a
-		>
+		<p>
+            © {year.getFullYear()} 
+            <span class="mx-2">·</span> 
+            <a class="hover:text-black dark:hover:text-white transition-colors" href="/imprint/">Imprint</a>
+        </p>
+        <p class="mt-2 text-xs opacity-70">
+            Made with ♥️ by <a class="hover:text-black dark:hover:text-white transition-colors" href="https://www.nicdun.dev" target="_blank">nicdun.dev</a>
+        </p>
 	</footer>
 </Section>

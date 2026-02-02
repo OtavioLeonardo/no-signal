@@ -8,35 +8,41 @@ import TableOfContents from '@/components/TableOfContents.astro';
 const { description } = AppConfig;
 const { frontmatter, headings } = Astro.props;
 
-
 const heroImage = frontmatter.image?.src 
     ? { src: frontmatter.image.src, alt: frontmatter.image.alt || '' } 
     : { src: '', alt: '' };
 ---
 
 <Base head={{ title: frontmatter.title, description }}>
-    <div class="mx-auto w-full max-w-screen-xl px-4 md:px-8">
+    <div class="mx-auto w-full max-w-screen-xl px-4 md:px-8 py-8 md:py-12">
         
-        <div class="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_250px]">
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_250px] lg:gap-12">
             
-            <main class="mx-auto w-full max-w-screen-md min-w-0">
-                <PostHeader
-                    title={frontmatter.title}
-                    author={frontmatter.author}
-                    tags={frontmatter.tags || []}
-                    minutesRead={frontmatter.minutesRead}
-                    pubDate={frontmatter.pubDate}
-                    isPinned={frontmatter.isPinned}
-                    img={heroImage}
-                />
-                
-                <PostContent>
-                    <slot />
-                </PostContent>
+            {/* 主内容区：使用 Apple Card 包裹 */}
+            <main class="min-w-0">
+                <article class="apple-card p-6 md:p-10 lg:p-12">
+                    <PostHeader
+                        title={frontmatter.title}
+                        author={frontmatter.author}
+                        tags={frontmatter.tags || []}
+                        minutesRead={frontmatter.minutesRead}
+                        pubDate={frontmatter.pubDate}
+                        isPinned={frontmatter.isPinned}
+                        img={heroImage}
+                    />
+        
+                    <PostContent>
+                        <slot />
+                    </PostContent>
+                </article>
             </main>
 
-            <aside class="hidden lg:block">
-                <div class="sticky top-24">
+            {/* 侧边栏：保持在卡片外，背景透明，融入全局灰色背景 */}
+            <aside class="hidden lg:block pl-2">
+                <div class="sticky top-24 text-sm text-gray-500">
+                    <div class="mb-4 font-semibold text-gray-900 dark:text-white px-3">
+                        On this page
+                    </div>
                     <TableOfContents headings={headings} />
                 </div>
             </aside>

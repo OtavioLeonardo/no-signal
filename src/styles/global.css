@@ -4,9 +4,20 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Tailwind doesn't fully support some of the complex CSS selectors needed for code highlighting,
-so we need to keep some custom CSS but applied through Tailwind's plugin system
-These styles are for code highlighting that can't be easily implemented with just Tailwind */
+/* --- 1. Base Layer: 苹果风格全局背景 --- */
+@layer base {
+    body {
+        /* 浅色模式：经典的 Apple 灰白底色，避免刺眼的纯白 */
+        @apply bg-[#F5F5F7] text-[#1D1D1F] antialiased;
+    }
+
+    .dark body {
+        /* 深色模式：深空灰 (macOS 风格)，比纯黑更有质感 */
+        @apply bg-[#000000] text-[#F5F5F7];
+    }
+}
+
+/* --- 2. Utilities Layer: 你的自定义代码高亮 (完整保留) --- */
 @layer utilities {
     .content pre {
         @apply p-0;
@@ -60,55 +71,77 @@ These styles are for code highlighting that can't be easily implemented with jus
     }
 }
 
-/* ... 上面是你原本的代碼 ... */
-
-/* --- Obsidian/GitHub Callout 样式 (Emoji 版) --- */
+/* --- 3. Components Layer: 组件样式 --- */
 @layer components {
 
-    /* --- 基础容器 --- */
+    /* --- 通用 Apple Card 组件 (推荐用于包裹你的文章主体) --- */
+    .apple-card {
+        @apply bg-white rounded-2xl border border-black/5 shadow-sm transition-all duration-300;
+    }
+
+    .dark .apple-card {
+        @apply bg-[#1C1C1E] border-white/10 shadow-none;
+    }
+
+    /* --- iOS 风格 Markdown Alerts / Callouts --- */
+    /* 设计语言变化：
+       - 移除左侧粗边框，改为四周细边框
+       - 增加大圆角 (rounded-2xl)
+       - 增加背景透明度与毛玻璃感 (backdrop-blur)
+       - 图标改为圆形背景包裹
+    */
+
     .markdown-alert {
-        /* ✅ 修复 1: 加上 text-[var(--alert-color)] 让正文也有颜色 */
-        @apply mb-4 border-l-4 rounded-r-lg p-4 text-sm bg-[var(--alert-bg)] border-[var(--alert-border)] text-[var(--alert-color)];
+        @apply mb-6 rounded-2xl border p-4 text-[15px] leading-relaxed relative overflow-hidden transition-all duration-200 backdrop-blur-md;
+
+        /* 默认变量兜底 */
+        --alert-bg: theme('colors.gray.50');
+        --alert-border: theme('colors.gray.200');
+        --alert-text: theme('colors.gray.800');
+        --alert-icon-bg: theme('colors.gray.200');
+
+        background-color: var(--alert-bg);
+        border-color: var(--alert-border);
+        color: var(--alert-text);
     }
 
-    /* --- 标题样式 --- */
+    /* 标题样式：全大写、字号小但加粗，类似 iOS 设置里的分组标题 */
     .markdown-alert-title {
-        @apply flex items-center font-bold mb-2;
+        @apply flex items-center font-bold mb-3 text-xs uppercase tracking-wider opacity-80;
     }
 
-    /* ✅ 修复 2: 隐藏插件自带的 SVG 图标，避免出现双图标 */
     .markdown-alert-title>svg {
         @apply hidden;
     }
 
-    /* ✅ 修复 3: 强制内部的 p 标签继承颜色 (防止被 prose 样式覆盖) */
     .markdown-alert p {
-        color: inherit;
+        @apply text-inherit opacity-95 m-0;
     }
 
     .markdown-alert>*:last-child {
         @apply mb-0;
     }
 
-    /* --- Emoji 图标通用设置 --- */
+    /* Emoji 图标容器：圆形背景，看起来像 App Icon */
     .markdown-alert-title::before {
-        @apply inline-block mr-2 text-lg leading-none not-italic;
+        @apply inline-flex items-center justify-center w-6 h-6 mr-2 text-sm rounded-full bg-[var(--alert-icon-bg)] not-italic shadow-sm;
         font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
     }
 
-    /* --- 各类型定义 --- */
+    /* --- 类型定义 (配色调整为更柔和的高级色) --- */
 
-    /* 1. Important (紫色) 💬 */
+    /* 1. Important (紫色 - 类似 iOS 专注模式) 💬 */
     .markdown-alert-important {
-        --alert-color: #7e22ce;
-        --alert-bg: #faf5ff;
-        --alert-border: #a855f7;
+        --alert-bg: rgba(245, 243, 255, 0.6);
+        --alert-border: rgba(168, 85, 247, 0.15);
+        --alert-text: #6b21a8;
+        --alert-icon-bg: #f3e8ff;
 
         &:where(.dark, .dark *) {
-            --alert-color: #e9d5ff;
-            /* 把文字颜色调得更亮一点，确保深色模式看得清 */
-            --alert-bg: #3b0764;
-            --alert-border: #9333ea;
+            --alert-bg: rgba(59, 7, 100, 0.4);
+            --alert-border: rgba(147, 51, 234, 0.3);
+            --alert-text: #e9d5ff;
+            --alert-icon-bg: rgba(147, 51, 234, 0.4);
         }
     }
 
@@ -116,17 +149,18 @@ These styles are for code highlighting that can't be easily implemented with jus
         content: "💬";
     }
 
-    /* 2. Note (蓝色) ℹ️ */
+    /* 2. Note (蓝色 - 类似 iOS 系统提示) ℹ️ */
     .markdown-alert-note {
-        --alert-color: #1d4ed8;
-        --alert-bg: #eff6ff;
-        --alert-border: #3b82f6;
+        --alert-bg: rgba(239, 246, 255, 0.6);
+        --alert-border: rgba(59, 130, 246, 0.15);
+        --alert-text: #1e40af;
+        --alert-icon-bg: #dbeafe;
 
         &:where(.dark, .dark *) {
-            --alert-color: #bfdbfe;
-            /* 亮蓝 */
-            --alert-bg: #172554;
-            --alert-border: #2563eb;
+            --alert-bg: rgba(23, 37, 84, 0.4);
+            --alert-border: rgba(59, 130, 246, 0.3);
+            --alert-text: #bfdbfe;
+            --alert-icon-bg: rgba(37, 99, 235, 0.4);
         }
     }
 
@@ -134,17 +168,18 @@ These styles are for code highlighting that can't be easily implemented with jus
         content: "ℹ️";
     }
 
-    /* 3. Tip (绿色) 💡 */
+    /* 3. Tip (绿色 - 类似 Fitness/Health) 💡 */
     .markdown-alert-tip {
-        --alert-color: #15803d;
-        --alert-bg: #f0fdf4;
-        --alert-border: #22c55e;
+        --alert-bg: rgba(240, 253, 244, 0.6);
+        --alert-border: rgba(34, 197, 94, 0.15);
+        --alert-text: #15803d;
+        --alert-icon-bg: #dcfce7;
 
         &:where(.dark, .dark *) {
-            --alert-color: #bbf7d0;
-            /* 亮绿 */
-            --alert-bg: #052e16;
-            --alert-border: #16a34a;
+            --alert-bg: rgba(5, 46, 22, 0.4);
+            --alert-border: rgba(34, 197, 94, 0.3);
+            --alert-text: #bbf7d0;
+            --alert-icon-bg: rgba(21, 128, 61, 0.4);
         }
     }
 
@@ -152,17 +187,18 @@ These styles are for code highlighting that can't be easily implemented with jus
         content: "💡";
     }
 
-    /* 4. Warning (橙色) ⚠️ */
+    /* 4. Warning (橙色 - 类似低电量模式) ⚠️ */
     .markdown-alert-warning {
-        --alert-color: #c2410c;
-        --alert-bg: #fff7ed;
-        --alert-border: #f97316;
+        --alert-bg: rgba(255, 247, 237, 0.6);
+        --alert-border: rgba(249, 115, 22, 0.15);
+        --alert-text: #9a3412;
+        --alert-icon-bg: #ffedd5;
 
         &:where(.dark, .dark *) {
-            --alert-color: #fed7aa;
-            /* 亮橙 */
-            --alert-bg: #431407;
-            --alert-border: #ea580c;
+            --alert-bg: rgba(67, 20, 7, 0.4);
+            --alert-border: rgba(249, 115, 22, 0.3);
+            --alert-text: #fed7aa;
+            --alert-icon-bg: rgba(194, 65, 12, 0.4);
         }
     }
 
@@ -170,21 +206,106 @@ These styles are for code highlighting that can't be easily implemented with jus
         content: "⚠️";
     }
 
-    /* 5. Caution (红色) 🛑 */
+    /* 5. Caution (红色 - 错误) 🛑 */
     .markdown-alert-caution {
-        --alert-color: #b91c1c;
-        --alert-bg: #fef2f2;
-        --alert-border: #ef4444;
+        --alert-bg: rgba(254, 242, 242, 0.6);
+        --alert-border: rgba(239, 68, 68, 0.15);
+        --alert-text: #991b1b;
+        --alert-icon-bg: #fee2e2;
 
         &:where(.dark, .dark *) {
-            --alert-color: #fecaca;
-            /* 亮红 */
-            --alert-bg: #450a0a;
-            --alert-border: #dc2626;
+            --alert-bg: rgba(69, 10, 10, 0.4);
+            --alert-border: rgba(239, 68, 68, 0.3);
+            --alert-text: #fecaca;
+            --alert-icon-bg: rgba(185, 28, 28, 0.4);
         }
     }
 
     .markdown-alert-caution .markdown-alert-title::before {
         content: "🛑";
     }
+}
+
+/* ...保留你之前的 @tailwind 和 .markdown-alert 代码... */
+
+@layer utilities {
+
+    /* 1. 优雅的入场动画 (Fade Up) 
+       Apple 的页面加载通常伴随着内容轻微上浮和透明度变化 
+    */
+    .animate-enter-content {
+        animation: enter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    /* 依次延迟入场，用于列表项，制造“瀑布流”感觉 */
+    .delay-100 {
+        animation-delay: 100ms;
+    }
+
+    .delay-200 {
+        animation-delay: 200ms;
+    }
+
+    .delay-300 {
+        animation-delay: 300ms;
+    }
+
+    @keyframes enter {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+            /* 稍微向下偏移一点点 */
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* 2. 隐藏滚动条但保留功能 (Mac 风格) */
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    /* 3. 极致的平滑字体渲染 */
+    body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+}
+
+/* --- Global Scrollbar Styling --- */
+@media (min-width: 640px) {
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        @apply bg-gray-300 dark:bg-gray-700;
+        border: 3px solid transparent;
+        background-clip: content-box;
+        border-radius: 9999px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        @apply bg-gray-400 dark:bg-gray-600;
+    }
+}
+
+/* 4. 优化 ViewTransitions 的默认行为，让它更柔和 */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 0.3s;
 }

@@ -1,3 +1,5 @@
+import typography from '@tailwindcss/typography';
+
 const disabledCss = {
 	'code::before': false,
 	'code::after': false,
@@ -15,25 +17,77 @@ export default {
 	theme: {
 		extend: {
 			fontFamily: {
-				// 我们重新定义 'mono' (等宽字体) 的逻辑：
+				// Apple Aesthetic: 优先使用 Inter 或系统原生字体 (SF Pro)
+				sans: [
+					'Inter',
+					'ui-sans-serif',
+					'system-ui',
+					'-apple-system',
+					'BlinkMacSystemFont',
+					'"Segoe UI"',
+					'Roboto',
+					'"Helvetica Neue"',
+					'Arial',
+					'"Noto Sans"',
+					'sans-serif',
+					'"Apple Color Emoji"',
+					'"Segoe UI Emoji"',
+					'"Segoe UI Symbol"',
+					'"Noto Color Emoji"'
+				],
+				// 你的原有 Mono 配置，保持不变
 				mono: [
-					'"JetBrains Mono"',  // 1. 英文优先用 JetBrains Mono
-					'"Noto Sans SC"',    // 2. 中文优先用 思源黑体
-					'ui-monospace',      // 3. 后面是系统保底...
+					'"JetBrains Mono"',
+					'"Noto Sans SC"',
+					'ui-monospace',
 					'Menlo',
 					'Monaco',
-					'Microsoft YaHei',   // Windows 保底
+					'Microsoft YaHei',
 					'monospace'
 				],
 			},
-			typography: {
-				DEFAULT: { css: disabledCss },
-				sm: { css: disabledCss },
-				lg: { css: disabledCss },
-				xl: { css: disabledCss },
-				'2xl': { css: disabledCss }
-			}
+			// 调整排版插件，让文章阅读体验更像 Apple News / Safari 阅读模式
+			typography: (theme) => ({
+				DEFAULT: {
+					css: {
+						...disabledCss,
+						'max-width': '65ch', // 最佳阅读宽度
+						color: theme('colors.gray.800'),
+						lineHeight: '1.75', // 更宽松的行高
+						h1: {
+							letterSpacing: '-0.025em',
+							fontWeight: '700',
+							color: theme('colors.gray.900'),
+						},
+						h2: {
+							letterSpacing: '-0.015em',
+							fontWeight: '600',
+							marginTop: '2em',
+							color: theme('colors.gray.900'),
+						},
+						'h3, h4': {
+							letterSpacing: '-0.015em',
+							fontWeight: '600',
+							color: theme('colors.gray.900'),
+						},
+						blockquote: {
+							borderLeftColor: theme('colors.gray.200'),
+							fontStyle: 'normal', // 苹果风格引用通常不强制斜体
+							color: theme('colors.gray.500'),
+						}
+					},
+				},
+				// 深色模式下的微调
+				invert: {
+					css: {
+						color: theme('colors.gray.300'),
+						'h1, h2, h3, h4': {
+							color: theme('colors.gray.100'),
+						}
+					}
+				}
+			})
 		}
 	},
-	plugins: [require('@tailwindcss/typography')]
+	plugins: [typography]
 };

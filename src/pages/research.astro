@@ -3,68 +3,63 @@ import Base from '@/layouts/Base.astro';
 import Section from '@/components/Section.astro';
 ---
 
-<Base head={{ title: 'Search', description: 'Search my blog' }}>
+<Base head={{ title: 'Search', description: 'Search my digital garden' }}>
   <Section>
-    <div class="py-12">
-      <h1 class="text-3xl font-bold mb-8">🔍 Search</h1>
+    <div class="py-12 md:py-20 max-w-2xl mx-auto">
+      <div class="text-center mb-10">
+        <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">Search</h1>
+        <p class="text-gray-500">Find insights, notes, and thoughts.</p>
+      </div>
       
       <link href="/pagefind/pagefind-ui.css" rel="stylesheet" />
       
-      <div id="search" class="p-4 bg-white dark:bg-stone-800 rounded-xl shadow-sm border border-stone-200 dark:border-stone-700"></div>
+      {/* 搜索容器: 增加 backdrop-blur 和精致的阴影 */}
+      <div class="relative group">
+        <div class="absolute -inset-1 bg-gradient-to-r from-blue-100 to-purple-100 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+        <div id="search" class="relative p-6 bg-white dark:bg-[#1C1C1E] rounded-2xl shadow-sm border border-gray-100 dark:border-white/10"></div>
+      </div>
     </div>
   </Section>
 </Base>
 
 <script>
   import { PagefindUI } from "@pagefind/default-ui";
-
   document.addEventListener("DOMContentLoaded", () => {
-    // 1. 初始化 Pagefind
     new PagefindUI({
       element: "#search",
       showSubResults: true,
-      resetStyles: false, // 使用我们自己的 CSS 变量
-      bundlePath: "/pagefind/", // 依然保留这个，防止 Vercel 找不到路径
-      
-      // 👇👇👇 新增这一行 👇👇👇
+      resetStyles: false, 
+      bundlePath: "/pagefind/", 
       language: "zh", 
-      // 👆👆👆 告诉 UI 我们在使用中文
+      showImages: false, // 建议关闭图片，让列表更紧凑
     });
 
-    // 2. 获取 DOM 元素
     const el = document.querySelector(".pagefind-ui");
     const input = el?.querySelector<HTMLInputElement>(`input[type="text"]`);
     const clearButton = el?.querySelector(".pagefind-ui__search-clear");
 
-    // 3. 检查 URL 是否有查询参数 ?q=...
+    // URL 同步逻辑保持不变 (这是好功能)
     const url = new URL(window.location.href);
     const params = new URLSearchParams(url.search);
     const query = params.get("q");
 
-    // 4. 如果 URL 里有参数，自动填充到输入框并触发搜索
     if (query && input) {
       input.value = query;
-      // 手动触发 input 事件，让 Pagefind 开始搜索
       input.dispatchEvent(new Event("input", { bubbles: true }));
     }
 
-    // 5. 监听输入，实时更新 URL 参数
     input?.addEventListener("input", (e) => {
       const target = e.target as HTMLInputElement;
       const url = new URL(window.location.href);
       const params = new URLSearchParams(url.search);
-      
       if (target.value) {
         params.set("q", target.value);
       } else {
         params.delete("q");
       }
-      
-      // 更新浏览器地址栏而不刷新页面
       window.history.replaceState({}, "", `${url.pathname}?${params}`);
     });
 
-    // 6. 监听清除按钮，点击时清空 URL 参数
     clearButton?.addEventListener("click", () => {
       const url = new URL(window.location.href);
       const params = new URLSearchParams(url.search);
@@ -75,30 +70,72 @@ import Section from '@/components/Section.astro';
 </script>
 
 <style is:global>
-  /* 复用你之前的样式设置，保证深色模式好看 */
+  /* Apple Style Spotlight Overrides */
   :root {
-    --pagefind-ui-scale: 1;
-    --pagefind-ui-primary: #ea580c;
-    --pagefind-ui-text: #1c1917;
+    --pagefind-ui-scale: 0.95;
+    --pagefind-ui-primary: #2563eb; /* Apple Blue */
+    --pagefind-ui-text: #1f2937;
     --pagefind-ui-background: transparent;
-    --pagefind-ui-border: #e7e5e4;
-    --pagefind-ui-tag: #f5f5f4;
-    --pagefind-ui-border-radius: 0.5rem;
-    --pagefind-ui-font: inherit; 
+    --pagefind-ui-border: #f3f4f6;
+    --pagefind-ui-tag: #f3f4f6;
+    --pagefind-ui-border-radius: 0.75rem;
+    --pagefind-ui-font: 'Inter', sans-serif;
   }
 
   html.dark {
-    --pagefind-ui-text: #fafaf9;
+    --pagefind-ui-text: #e5e7eb;
     --pagefind-ui-background: transparent;
-    --pagefind-ui-border: #44403c;
-    --pagefind-ui-tag: #292524;
+    --pagefind-ui-border: #27272a;
+    --pagefind-ui-tag: #27272a;
   }
 
+  /* 输入框美化 */
   .pagefind-ui__search-input {
-    font-weight: normal;
+    background-color: #f3f4f6 !important; /* iOS 灰色输入框 */
+    border: 1px solid transparent !important;
+    border-radius: 12px !important;
+    padding: 12px 16px !important;
+    font-size: 1rem !important;
+    transition: all 0.2s;
   }
   
-  .pagefind-ui__result-thumb {
-    object-fit: cover;
+  html.dark .pagefind-ui__search-input {
+    background-color: #2c2c2e !important;
+    color: white !important;
+  }
+
+  .pagefind-ui__search-input:focus {
+    background-color: white !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1) !important;
+  }
+  html.dark .pagefind-ui__search-input:focus {
+    background-color: #1c1c1e !important;
+  }
+
+  /* 结果列表美化 */
+  .pagefind-ui__result {
+    border: none !important;
+    border-bottom: 1px solid #f3f4f6 !important;
+    padding: 16px 0 !important;
+  }
+  html.dark .pagefind-ui__result {
+    border-bottom: 1px solid #27272a !important;
+  }
+
+  .pagefind-ui__result-title {
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+  }
+
+  .pagefind-ui__message {
+    color: #9ca3af !important;
+    padding: 20px 0 !important;
+    text-align: center;
+  }
+  
+  /* 隐藏 Pagefind 默认的按钮，让它更像纯输入框 */
+  .pagefind-ui__search-clear {
+    background-color: transparent !important;
   }
 </style>

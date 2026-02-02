@@ -1,56 +1,65 @@
 ---
 import Section from './Section.astro';
 import Social from './Social.astro';
+import HeroBackground from './HeroBackground.astro';
 
 const site = Astro.site;
 ---
 
-<Section>
-	<br />
-	<p class="pb-2 pt-6 text-4xl font-bold">BOX! BOX! </p>
-	<div class="text-sm">
-    <p class="py-2">
-        欢迎来到我的数字花园。作为一个 <span class="font-black text-orange-600">INTP</span>，我习惯于在感性的艺术与理性的数据之间寻找平衡。我既沉迷于古典声乐的严谨美学，也热衷于分析 <span class="font-black text-orange-600">模拟赛车</span> 的遥测数据。
-    </p>
-    <p class="py-2">
-        这是一个关于“记录与输出”的平台。我会在这里更新每日的 <span class="font-black text-orange-600">生活日志</span> 与练车心得，也会分享赛车技术文档、自用的 <span class="font-black text-orange-600">工具</span> 以及高效工作的小技巧。
-    </p>
-    <p class="py-2">
-        在这里，你可以看到我如何用工程师的思维去拆解生活，用艺术家的视角去记录世界。无论是为了那 0.1 秒的圈速，还是为了一次多彩的思考，<span class="font-black text-orange-600">极致</span> 永远是我的追求。
-    </p>
-</div>
-	<div class="flex">
-		<Social href="https://github.com/#">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="h-4 w-4"
-				fill="currentColor"
-				viewBox="0 0 24 24"
-			>
-				<path
-					d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-				></path>
-			</svg>
-		</Social>
-		<Social href="https://www.linkedin.com/#">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="h-4 w-4"
-				fill="currentColor"
-				viewBox="0 0 24 24"
-			>
-				<path
-					d="M4.98 3.5c0 1.381-1.11 2.5-2.48 2.5s-2.48-1.119-2.48-2.5c0-1.38 1.11-2.5 2.48-2.5s2.48 1.12 2.48 2.5zm.02 4.5h-5v16h5v-16zm7.982 0h-4.968v16h4.969v-8.399c0-4.67 6.029-5.052 6.029 0v8.399h4.988v-10.131c0-7.88-8.922-7.593-11.018-3.714v-2.155z"
-				></path>
-			</svg>
-		</Social>
-		<Social href={`${site}rss.xml`}>
-			<svg viewBox="0 0 24 24" width="1.2em" height="1.2em"
-				><path
-					fill="currentColor"
-					d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1Z"
-				></path></svg
-			>
-		</Social>
-	</div>
+<Section class="relative">
+    <HeroBackground />
+
+    {/* 修改点 1: 减小 py 值 (原为 py-20 md:py-32)，让顶部空间更紧凑 */}
+    <div class="relative z-10 py-12 md:py-24 lg:py-28">
+        <div class="max-w-5xl mx-auto text-center">
+            
+            {/* 1. 标题区 */}
+            <div class="animate-enter-content opacity-0 fill-mode-forwards">
+                <h1 class="text-7xl sm:text-8xl md:text-9xl font-black tracking-tighter leading-[0.85] text-gray-900 dark:text-white mb-8">
+                    
+                    {/* 修改点 2: 上面的 BOX! 向左偏移 (-translate-x) */}
+                    <span class="block -translate-x-6 md:-translate-x-12 translate-y-4">
+                        BOX!
+                    </span>
+                    
+                    {/* 修改点 3: 下面的 BOX! 向右偏移 (translate-x)，形成错开效果 */}
+                    <span class="block translate-x-6 md:translate-x-12 text-transparent bg-clip-text bg-gradient-to-b from-gray-900 via-gray-600 to-gray-400 dark:from-white dark:via-gray-400 dark:to-gray-600">
+                        BOX!
+                    </span>
+                    
+                </h1>
+            </div>
+            
+            {/* 2. Slogan */}
+            <div class="animate-enter-content delay-100 opacity-0 fill-mode-forwards mb-10">
+                <p class="text-2xl md:text-4xl font-bold tracking-tight text-gray-800 dark:text-gray-100">
+                    The intersection of <span class="text-blue-600 dark:text-blue-400">Art</span> & <span class="text-orange-600">Telemetry</span>.
+                </p>
+            </div>
+
+            {/* 3. 个人简介文本 (保持上次优化的 max-w-4xl) */}
+            <div class="animate-enter-content delay-200 opacity-0 fill-mode-forwards max-w-4xl mx-auto">
+                <div class="text-lg md:text-xl leading-relaxed text-gray-600 dark:text-gray-300 space-y-6">
+                    <p>
+                        欢迎来到我的数字花园。作为一个 <span class="font-semibold text-gray-900 dark:text-white">INTP</span>，我在古典声乐的感性与模拟赛车的理性数据之间寻找平衡。
+                        这里记录我如何用工程师思维拆解生活，用艺术家视角观察世界。
+						<br>追求那 0.1 秒的<span class="font-semibold text-gray-900 dark:text-white">极致</span>，也享受每一次多彩的思考。
+                    </p>
+                </div>
+            </div>
+
+            {/* 4. Social Icons */}
+            <div class="animate-enter-content delay-300 opacity-0 fill-mode-forwards flex items-center justify-center gap-6 mt-12">
+                <Social href="https://github.com/#">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                </Social>
+                <Social href="https://www.linkedin.com/#">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5c0 1.381-1.11 2.5-2.48 2.5s-2.48-1.119-2.48-2.5c0-1.38 1.11-2.5 2.48-2.5s2.48 1.12 2.48 2.5zm.02 4.5h-5v16h5v-16zm7.982 0h-4.968v16h4.969v-8.399c0-4.67 6.029-5.052 6.029 0v8.399h4.988v-10.131c0-7.88-8.922-7.593-11.018-3.714v-2.155z"/></svg>
+                </Social>
+                <Social href={`${site}rss.xml`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1Z"/></svg>
+                </Social>
+            </div>
+        </div>
+    </div>
 </Section>

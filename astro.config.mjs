@@ -57,7 +57,25 @@ export default defineConfig({
             enabled: true
         }
     }),
+
+    // ✅ 修改部分：整合了 Tailwind 插件和构建优化配置
     vite: {
-        plugins: [tailwindcss()]
+        plugins: [tailwindcss()],
+        build: {
+            // 1. 调高警告阈值到 1MB (1024 KB)，消除 "Some chunks are larger than 500 kB" 警告
+            chunkSizeWarningLimit: 1024,
+
+            // 2. 优化分包策略，将第三方库单独打包，提高缓存命中率
+            rollupOptions: {
+                output: {
+                    manualChunks(id) {
+                        // 将 node_modules 中的依赖单独打包成 'vendor'
+                        if (id.includes('node_modules')) {
+                            return 'vendor';
+                        }
+                    },
+                },
+            },
+        }
     }
 });
