@@ -1,0 +1,56 @@
+---
+// src/components/Aside.astro
+
+// 👇 1. 定义 Props 类型 (解决 TS 报错的关键)
+interface Props {
+  type?: 'tip' | 'note' | 'danger' | 'caution';
+  title?: string;
+  content?: string;
+}
+
+// 👇 接收参数
+const { type = 'tip', title, content } = Astro.props;
+
+const styles = {
+  note: {
+    container: 'bg-gray-50 border-gray-500 text-gray-800 dark:bg-gray-800/50 dark:border-gray-400 dark:text-gray-200',
+    titleColor: 'text-gray-900 dark:text-gray-100',
+    icon: '📝', 
+    defaultTitle: 'Note',
+  },
+  tip: {
+    container: 'bg-blue-50 border-blue-500 text-blue-800 dark:bg-blue-900/20 dark:border-blue-400 dark:text-blue-100',
+    titleColor: 'text-blue-900 dark:text-blue-50',
+    icon: '💡',
+    defaultTitle: 'Tip',
+  },
+  caution: {
+    container: 'bg-orange-50 border-orange-500 text-orange-800 dark:bg-orange-900/20 dark:border-orange-400 dark:text-orange-100',
+    titleColor: 'text-orange-900 dark:text-orange-50',
+    icon: '⚡',
+    defaultTitle: 'Caution',
+  },
+  danger: {
+    container: 'bg-red-50 border-red-500 text-red-800 dark:bg-red-900/20 dark:border-red-400 dark:text-red-100',
+    titleColor: 'text-red-900 dark:text-red-50',
+    icon: '🔥',
+    defaultTitle: 'Danger',
+  },
+};
+
+// 👇 安全获取样式 (如果类型不对，回退到 note)
+const current = styles[type] || styles.note;
+const displayTitle = title || current.defaultTitle;
+---
+
+<div class={`flex flex-col border-l-4 py-3 px-4 my-4 rounded-r-lg shadow-sm ${current.container} prose-p:my-0`}>
+  <div class={`flex items-center font-bold text-sm mb-1 ${current.titleColor}`}>
+    <span class="mr-2 text-lg">{current.icon}</span>
+    {displayTitle}
+  </div>
+  <div class="text-sm leading-relaxed opacity-90 whitespace-pre-wrap">
+    {/* 显示内容 */}
+    {content}
+    <slot /> 
+  </div>
+</div>

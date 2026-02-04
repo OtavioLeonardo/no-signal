@@ -58,9 +58,11 @@ export default defineConfig({
         }
     }),
 
-    // ✅ 修改部分：整合了 Tailwind 插件和构建优化配置
     vite: {
         plugins: [tailwindcss()],
+        optimizeDeps: {
+            exclude: ['keystatic.config.tsx']
+        },
         build: {
             // 1. 调高警告阈值到 1MB (1024 KB)，消除 "Some chunks are larger than 500 kB" 警告
             chunkSizeWarningLimit: 1024,

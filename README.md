@@ -1,75 +1,113 @@
-# Astro & Tailwind CSS Starter Kit
-
-## 🔥 Features
-
-Explore the Astro.js Personal Blog Template – a sleek and feature-rich platform for your personal blog:
-
-- **Astro.js v5 Powered**: Dynamic and efficient JavaScript-driven experience.
-- **Tailwind CSS Integration**: Ensures a stylish and responsive design.
-- **RSS Feed Support**: Keeps your audience updated effortlessly.
-- **Markdown Compatibility**: Streamlines content creation with easy formatting.
-- **Syntax Highlighting**: Enhances code snippet readability for tech enthusiasts.
-- **SEO-Optimized**: Includes a sitemap for optimal search engine visibility.
-- **Vercel Deployment:** preconfigured Vercel deployment & web analytics.
-- **Framework of your choice:** 100% Astro.js only template - choose your JS Framework (react preinstalled)
-
-Unlock a seamless blend of aesthetics and functionality to share your unique voice with the world.
-
-## 💻 Showcase
-
-![showcase](/public/showcase.png 'AstroPress - Tech Blog Template')
-
-## 📦 Template Integrations
-
-- @astrojs/tailwind - https://docs.astro.build/en/guides/integrations-guide/tailwind/
-- @astrojs/react - https://docs.astro.build/en/guides/integrations-guide/react/
-- @astrojs/sitemap - https://docs.astro.build/en/guides/integrations-guide/sitemap/
-- @astrojs/rss - https://docs.astro.build/en/guides/rss/
-- @vercel/analytics - https://vercel.com/docs/analytics/
-- rehype-pretty-code - https://rehype-pretty-code.netlify.app/
-
-## 🏛️ Template Structure
-
-Inside of your Astro project, you'll see the following folders and files:
 
 ```
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+nosignal
+├─ .prettierignore
+├─ .prettierrc
+├─ .whitesource
+├─ LICENSE
+├─ astro.config.mjs
+├─ keystatic.config.tsx
+├─ package-lock.json
+├─ package.json
+├─ public
+│  ├─ 1.png
+│  ├─ 2.png
+│  ├─ 3.png
+│  ├─ 4.png
+│  ├─ 5.png
+│  ├─ favicon.svg
+│  ├─ images
+│  │  └─ random.jpg
+│  ├─ nobg.png
+│  ├─ robots.txt
+│  ├─ rss
+│  │  └─ styles.xsl
+│  ├─ showcase.jpg
+│  └─ showcase.png
+├─ renovate.json
+├─ src
+│  ├─ assets
+│  │  └─ images
+│  │     ├─ diary
+│  │     │  ├─ 20260129
+│  │     │  │  └─ 20260129di.png
+│  │     │  ├─ 20260131
+│  │     │  │  └─ if-the-barcelona-shakedown-was-a-qualifying-session-every-v0-eudzyfb66jgg1.webp
+│  │     │  └─ diary20260127.jpeg
+│  │     ├─ post
+│  │     └─ posts
+│  │        └─ Spa-Francorchamps
+│  │           ├─ Code_Generated_Image.png
+│  │           ├─ spa.png
+│  │           ├─ spa1.png
+│  │           └─ spa2.png
+│  ├─ components
+│  │  ├─ Card.astro
+│  │  ├─ Footer.astro
+│  │  ├─ Heading.astro
+│  │  ├─ Hero.astro
+│  │  ├─ HeroBackground.astro
+│  │  ├─ LatestPosts.astro
+│  │  ├─ Navbar.astro
+│  │  ├─ PinIcon.astro
+│  │  ├─ PinnedBadge.astro
+│  │  ├─ PostContent.astro
+│  │  ├─ PostHeader.astro
+│  │  ├─ Section.astro
+│  │  ├─ Social.astro
+│  │  ├─ TableOfContents.astro
+│  │  ├─ Tag.astro
+│  │  ├─ Tags.astro
+│  │  └─ posthog.astro
+│  ├─ content
+│  │  ├─ config.ts
+│  │  ├─ diary
+│  │  │  ├─ 2026-02-02.mdoc
+│  │  │  ├─ 20260126.mdoc
+│  │  │  ├─ 20260127.mdoc
+│  │  │  ├─ 20260128.mdoc
+│  │  │  ├─ 20260129.mdoc
+│  │  │  └─ 20260131.mdoc
+│  │  ├─ pages
+│  │  │  └─ now.mdoc
+│  │  └─ posts
+│  │     ├─ Spa-Francorchamps.mdoc
+│  │     ├─ sim-racing-training.mdoc
+│  │     ├─ 努力的真相.mdoc
+│  │     ├─ 合唱中的認知負荷問題化整為零的策略.mdoc
+│  │     ├─ 圖片的比例.mdoc
+│  │     ├─ 比喻與想象引導學生們練聲的關鍵.mdoc
+│  │     ├─ 赛车的心态问题.mdoc
+│  │     ├─ 适应与重置.mdoc
+│  │     └─ 野火.mdoc
+│  ├─ env.d.ts
+│  ├─ layouts
+│  │  ├─ Base.astro
+│  │  ├─ diary.astro
+│  │  └─ post.astro
+│  ├─ pages
+│  │  ├─ diary
+│  │  │  ├─ [slug].astro
+│  │  │  └─ index.astro
+│  │  ├─ imprint.astro
+│  │  ├─ index.astro
+│  │  ├─ now.astro
+│  │  ├─ posts
+│  │  │  ├─ [slug].astro
+│  │  │  └─ index.astro
+│  │  ├─ research.astro
+│  │  ├─ rss.xml.js
+│  │  ├─ tags
+│  │  │  ├─ [tag].astro
+│  │  │  └─ index.astro
+│  │  └─ tools.astro
+│  ├─ styles
+│  │  └─ global.css
+│  └─ utils
+│     ├─ AppConfig.ts
+│     ├─ data.util.ts
+│     └─ readingTime.ts
+├─ tailwind.config.mjs
+└─ tsconfig.json
+
 ```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🚀 Getting started
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                | Action                                           |
-| :--------------------- | :----------------------------------------------- |
-| `npm install`          | Installs dependencies                            |
-| `npm run dev`          | Starts local dev server at `localhost:3000`      |
-| `npm run build`        | Build your production site to `./dist/`          |
-| `npm run preview`      | Preview your build locally, before deploying     |
-| `npm run astro ...`    | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro --help` | Get help using the Astro CLI                     |
-
-## ❤️ Helping out
-
-If you find that something isn't working right then I'm always happy to hear it to improve this starter! You can contribute in many ways and forms. Let me know by either:
-
-1. [Filing an issue](https://github.com/nicdun/astro-tech-blog/issues)
-2. [Submitting a pull request](https://github.com/nicdun/astro-tech-blog/pulls)
-3. [Starting a discussion](https://github.com/nicdun/astro-tech-blog/discussions)
-4. [Buying me a coffee!](https://www.buymeacoffee.com/nicdun)
-
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/nicdun)
-
-## ☕ Thank you!
-A big thank you to the creators of the awesome Astro static site generator and to all using this starter to make the web a bit more accessible for all people around the world :)

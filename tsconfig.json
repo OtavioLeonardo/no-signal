@@ -38,6 +38,7 @@
   },
   "include": [
     ".astro/types.d.ts",
+    "keystatic.config.tsx",
     "**/*"
   ],
   "exclude": [
