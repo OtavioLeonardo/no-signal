@@ -8,9 +8,9 @@ import TableOfContents from '@/components/TableOfContents.astro';
 const { description } = AppConfig;
 const { frontmatter, headings } = Astro.props;
 
-const heroImage = frontmatter.image?.src 
-    ? { src: frontmatter.image.src, alt: frontmatter.image.alt || '' } 
-    : { src: '', alt: '' };
+// ✅ 修改：直接获取 image 对象，不要手动拆解 src
+// 如果 content collections 定义了 image()，这会是一个完整的 ImageMetadata 对象
+const heroImage = frontmatter.image; 
 ---
 
 <Base head={{ title: frontmatter.title, description }}>
@@ -21,6 +21,7 @@ const heroImage = frontmatter.image?.src
             {/* 主内容区：使用 Apple Card 包裹 */}
             <main class="min-w-0">
                 <article class="apple-card p-6 md:p-10 lg:p-12">
+ 
                     <PostHeader
                         title={frontmatter.title}
                         author={frontmatter.author}
@@ -28,12 +29,13 @@ const heroImage = frontmatter.image?.src
                         minutesRead={frontmatter.minutesRead}
                         pubDate={frontmatter.pubDate}
                         isPinned={frontmatter.isPinned}
-                        img={heroImage}
+                        img={heroImage} 
                     />
         
                     <PostContent>
                         <slot />
                     </PostContent>
+           
                 </article>
             </main>
 

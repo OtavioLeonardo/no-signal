@@ -3,6 +3,7 @@ import { formatDate } from '@/utils/data.util';
 import Section from './Section.astro';
 import Tags from './Tags.astro';
 import PinnedBadge from './PinnedBadge.astro';
+import { Image } from 'astro:assets';
 
 interface Props {
 	title: string;
@@ -11,14 +12,29 @@ interface Props {
 	minutesRead: string;
 	pubDate: string;
 	isPinned?: boolean;
-	img: {
-		src: string;
-		alt: string;
-	};
+	img: any;
 }
 
 const { title, pubDate, tags, minutesRead, img, isPinned = false } = Astro.props;
 const formattedDate = formatDate(pubDate);
+
+// 核心修复：智能提取图片路径
+const getImgSrc = (imageProp: any) => {
+    if (!imageProp) return null;
+    
+    // 情况 1：如果是字符串（直接的 URL 或 路径），直接返回
+    if (typeof imageProp === 'string') return imageProp;
+    
+    // 情况 2：如果是 Astro 的 ImageMetadata（包含 format/width/height），直接返回对象
+    if (imageProp.format) return imageProp;
+    
+    // 情况 3：如果是包装对象（{ src: "...", alt: "..." }），返回 .src
+    return imageProp.src;
+};
+
+// 获取最终的 src 和 alt
+const finalSrc = getImgSrc(img);
+const finalAlt = (typeof img === 'object' && img?.alt) ? img.alt : title;
 ---
 
 <Section>
@@ -42,13 +58,17 @@ const formattedDate = formatDate(pubDate);
 		</div>
 
         {/* Hero Image: Rounded & Shadow */}
-		{img.src && (
+        {/* 使用处理过的 finalSrc */}
+		{finalSrc && (
             <div class="w-full relative group">
                 <div class="absolute -inset-1 bg-gradient-to-r from-gray-200 to-gray-100 rounded-2xl blur opacity-20 dark:opacity-10 transition duration-1000 group-hover:opacity-40"></div>
-                <img 
-                    src={img.src} 
-                    alt={img.alt} 
+                
+                <Image 
+                    src={finalSrc} 
+                    alt={finalAlt} 
                     class="relative w-full rounded-2xl shadow-sm border border-black/5 dark:border-white/10 dark:shadow-none"
+                    width={1200}
+                    height={630}
                 />
             </div>
         )}
