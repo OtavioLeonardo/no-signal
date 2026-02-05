@@ -37,66 +37,66 @@ const {
 		<PostHog />
 		<ClientRouter />
 
-        <script>
-            import mediumZoom from 'medium-zoom';
-        
-            const initZoom = () => {
-                const zoom = mediumZoom('.prose img', {
-                    margin: 60,
-                    scrollOffset: 40,
-                    background: document.documentElement.classList.contains('dark') ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.9)',
-                });
+		<script>
+			import mediumZoom from 'medium-zoom';
+		
+			const initZoom = () => {
+				const zoom = mediumZoom('.prose img', {
+					margin: 60,
+					scrollOffset: 40,
+					background: document.documentElement.classList.contains('dark') ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+				});
 
-                const observer = new MutationObserver((mutations) => {
-                    mutations.forEach((mutation) => {
-                        if (mutation.attributeName === 'class') {
-                            zoom.update({
-                                background: document.documentElement.classList.contains('dark') ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.9)',
-                            });
-                        }
-                    });
-                });
-                observer.observe(document.documentElement, { attributes: true });
-            };
-        
-            const initCopyButtons = () => {
-                const codeBlocks = document.querySelectorAll('pre');
-                
-                codeBlocks.forEach((block) => {
-                    if (block.parentElement?.querySelector('.copy-btn')) return;
-        
-                    const container = document.createElement('div');
-                    container.className = 'relative group';
-                    
-                    block.parentNode?.insertBefore(container, block);
-                    container.appendChild(block);
-        
-                    const button = document.createElement('button');
-                    button.className = 'copy-btn absolute top-3 right-3 p-2 rounded-lg bg-white/90 dark:bg-gray-800/90 text-gray-500 hover:text-blue-600 shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-200 border border-gray-200 dark:border-gray-700';
-                    button.innerHTML = `
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-                    `;
-        
-                    button.addEventListener('click', async () => {
-                        const code = block.querySelector('code')?.innerText || '';
-                        await navigator.clipboard.writeText(code);
-                        
-                        const originalIcon = button.innerHTML;
-                        button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-500"><polyline points="20 6 9 17 4 12"/></svg>`;
-                        setTimeout(() => {
-                            button.innerHTML = originalIcon;
-                        }, 2000);
-                    });
-        
-                    container.appendChild(button);
-                });
-            };
-        
-            document.addEventListener('astro:page-load', () => {
-                initZoom();
-                initCopyButtons();
-            });
-        </script>
+				const observer = new MutationObserver((mutations) => {
+					mutations.forEach((mutation) => {
+						if (mutation.attributeName === 'class') {
+							zoom.update({
+								background: document.documentElement.classList.contains('dark') ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+							});
+						}
+					});
+				});
+				observer.observe(document.documentElement, { attributes: true });
+			};
+		
+			const initCopyButtons = () => {
+				const codeBlocks = document.querySelectorAll('pre');
+				
+				codeBlocks.forEach((block) => {
+					if (block.parentElement?.querySelector('.copy-btn')) return;
+		
+					const container = document.createElement('div');
+					container.className = 'relative group';
+					
+					block.parentNode?.insertBefore(container, block);
+					container.appendChild(block);
+		
+					const button = document.createElement('button');
+					button.className = 'copy-btn absolute top-3 right-3 p-2 rounded-lg bg-white/90 dark:bg-gray-800/90 text-gray-500 hover:text-blue-600 shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-200 border border-gray-200 dark:border-gray-700';
+					button.innerHTML = `
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+					`;
+		
+					button.addEventListener('click', async () => {
+						const code = block.querySelector('code')?.innerText || '';
+						await navigator.clipboard.writeText(code);
+						
+						const originalIcon = button.innerHTML;
+						button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-500"><polyline points="20 6 9 17 4 12"/></svg>`;
+						setTimeout(() => {
+							button.innerHTML = originalIcon;
+						}, 2000);
+					});
+		
+					container.appendChild(button);
+				});
+			};
+		
+			document.addEventListener('astro:page-load', () => {
+				initZoom();
+				initCopyButtons();
+			});
+		</script>
 	</head>
 	<body class="flex min-h-screen flex-col bg-[#F5F5F7] dark:bg-black selection:bg-blue-100 selection:text-blue-900 dark:selection:bg-blue-900 dark:selection:text-blue-100">
 		<Navbar />
@@ -104,5 +104,33 @@ const {
 			<slot />
 		</div>
 		<Footer />
+
+		{/* ✅ 新增：强制解锁滚动的脚本 */}
+		<script is:inline>
+			function unlockScroll() {
+				// 强制重置滚动属性
+				document.body.style.overflow = 'auto';
+				// 如果需要隐藏横向滚动，手动设置 overflowX
+				document.body.style.overflowX = 'hidden'; 
+				document.documentElement.style.overflow = 'auto';
+				
+				// 强制移除焦点，解决 iOS/Safari 下的焦点锁定问题
+				if (document.activeElement instanceof HTMLElement) {
+					document.activeElement.blur();
+				}
+				// 强制窗口获取焦点
+				window.focus();
+			}
+
+			// 1. 立即执行
+			unlockScroll();
+
+			// 2. 页面加载完成（针对 ClientRouter）时执行
+			document.addEventListener('astro:page-load', unlockScroll);
+			
+			// 3. 延迟执行（针对 hydration 滞后）
+			setTimeout(unlockScroll, 100);
+			setTimeout(unlockScroll, 500);
+		</script>
 	</body>
 </html>
