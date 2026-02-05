@@ -9,6 +9,7 @@ import pagefind from "astro-pagefind";
 import { remarkAlert } from 'remark-github-blockquote-alert';
 import markdoc from '@astrojs/markdoc';
 import keystatic from '@keystatic/astro';
+import { visualizer } from "rollup-plugin-visualizer";
 
 const options = {
     // Specify the theme to use or a custom theme json, in our case
@@ -59,7 +60,14 @@ export default defineConfig({
     }),
 
     vite: {
-        plugins: [tailwindcss()],
+        plugins: [
+            tailwindcss(),
+            visualizer({
+                emitFile: true,
+                filename: "stats.html", // 生成的文件名
+                template: "treemap"
+            })
+        ],
         optimizeDeps: {
             exclude: ['keystatic.config.tsx']
         },

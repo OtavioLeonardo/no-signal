@@ -22,62 +22,18 @@ import Section from '@/components/Section.astro';
   </Section>
 </Base>
 
-<script>
-  import { PagefindUI } from "@pagefind/default-ui";
-  document.addEventListener("DOMContentLoaded", () => {
-    new PagefindUI({
-      element: "#search",
-      showSubResults: true,
-      resetStyles: false, 
-      bundlePath: "/pagefind/", 
-      language: "zh", 
-      showImages: false, // 建议关闭图片，让列表更紧凑
-    });
-
-    const el = document.querySelector(".pagefind-ui");
-    const input = el?.querySelector<HTMLInputElement>(`input[type="text"]`);
-    const clearButton = el?.querySelector(".pagefind-ui__search-clear");
-
-    // URL 同步逻辑保持不变 (这是好功能)
-    const url = new URL(window.location.href);
-    const params = new URLSearchParams(url.search);
-    const query = params.get("q");
-
-    if (query && input) {
-      input.value = query;
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-
-    input?.addEventListener("input", (e) => {
-      const target = e.target as HTMLInputElement;
-      const url = new URL(window.location.href);
-      const params = new URLSearchParams(url.search);
-      if (target.value) {
-        params.set("q", target.value);
-      } else {
-        params.delete("q");
-      }
-      window.history.replaceState({}, "", `${url.pathname}?${params}`);
-    });
-
-    clearButton?.addEventListener("click", () => {
-      const url = new URL(window.location.href);
-      const params = new URLSearchParams(url.search);
-      params.delete("q");
-      window.history.replaceState({}, "", `${url.pathname}`);
-    });
-  });
-</script>
-
 <style is:global>
-  /* Apple Style Spotlight Overrides */
+  /* * Pagefind UI Customization 
+   * 强制覆盖默认样式以适配设计风格
+   */
   :root {
-    --pagefind-ui-scale: 0.95;
-    --pagefind-ui-primary: #2563eb; /* Apple Blue */
-    --pagefind-ui-text: #1f2937;
+    --pagefind-ui-scale: 1;
+    --pagefind-ui-primary: #3b82f6;
+    --pagefind-ui-text: #374151;
     --pagefind-ui-background: transparent;
     --pagefind-ui-border: #f3f4f6;
     --pagefind-ui-tag: #f3f4f6;
+    --pagefind-ui-border-width: 1px;
     --pagefind-ui-border-radius: 0.75rem;
     --pagefind-ui-font: 'Inter', sans-serif;
   }
@@ -114,28 +70,83 @@ import Section from '@/components/Section.astro';
   }
 
   /* 结果列表美化 */
+  .pagefind-ui__drawer {
+    gap: 1.5rem !important;
+  }
+
   .pagefind-ui__result {
     border: none !important;
-    border-bottom: 1px solid #f3f4f6 !important;
-    padding: 16px 0 !important;
+    padding: 1rem !important;
+    border-radius: 0.75rem !important;
+    transition: background-color 0.2s;
   }
-  html.dark .pagefind-ui__result {
-    border-bottom: 1px solid #27272a !important;
+
+  .pagefind-ui__result:hover {
+    background-color: rgba(0, 0, 0, 0.03) !important;
+  }
+  html.dark .pagefind-ui__result:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  .pagefind-ui__result-thumb {
+    border-radius: 0.5rem !important;
   }
 
   .pagefind-ui__result-title {
     font-weight: 600 !important;
-    font-size: 1.1rem !important;
+    font-size: 1.125rem !important;
+    color: #111827 !important;
+  }
+  html.dark .pagefind-ui__result-title {
+    color: white !important;
   }
 
-  .pagefind-ui__message {
-    color: #9ca3af !important;
-    padding: 20px 0 !important;
-    text-align: center;
+  .pagefind-ui__result-excerpt {
+    color: #6b7280 !important;
+    font-size: 0.95rem !important;
+    margin-top: 0.5rem !important;
   }
-  
-  /* 隐藏 Pagefind 默认的按钮，让它更像纯输入框 */
-  .pagefind-ui__search-clear {
-    background-color: transparent !important;
+  html.dark .pagefind-ui__result-excerpt {
+    color: #9ca3af !important;
+  }
+
+  /* 移除 unnecessary elements */
+  .pagefind-ui__button {
+    background: transparent !important;
+    border: 1px solid #e5e7eb !important;
+    color: #6b7280 !important;
+  }
+  html.dark .pagefind-ui__button {
+    border-color: #27272a !important;
+    color: #9ca3af !important;
   }
 </style>
+
+<script>
+  // ✅ 核心修复：使用 astro:page-load 事件，并使用动态导入
+  document.addEventListener("astro:page-load", async () => {
+    const searchDiv = document.querySelector("#search");
+    
+    // 只有当页面上确实存在 search 容器时才加载代码
+    if (searchDiv) {
+      // 1. 清空旧的内容（防止路由跳转回来时重复渲染）
+      searchDiv.innerHTML = '';
+
+      try {
+        // 2. 动态导入 PagefindUI，Vite 会自动将其拆分为单独的 JS 文件
+        const { PagefindUI } = await import("@pagefind/default-ui");
+        
+        // 3. 初始化
+        new PagefindUI({
+          element: "#search",
+          showSubResults: true,
+          showImages: false,
+          resetStyles: false, // 我们自己写了 CSS，所以不用默认的
+          debounceTimeoutMs: 500,
+        });
+      } catch (e) {
+        console.error("Failed to load search index:", e);
+      }
+    }
+  });
+</script>
