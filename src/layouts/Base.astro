@@ -107,25 +107,35 @@ const {
 
 		{/* ✅ 新增：强制解锁滚动的脚本 */}
 		<script is:inline>
-			function unlockScroll() {
-				// 1. 移除内联样式，而不是设置为 'auto'
-				// 这会将滚动控制权交还给 HTML Viewport，恢复 Sticky 功能
-				document.body.style.removeProperty('overflow');
-				document.body.style.removeProperty('overflow-x');
-				document.documentElement.style.removeProperty('overflow');
-				
-				// 2. 强制移除焦点 (保留你原有的逻辑)
-				if (document.activeElement instanceof HTMLElement) {
-					document.activeElement.blur();
-				}
-				window.focus();
-			}
+    function unlockScroll() {
+        // 1. 强制 html (documentElement) 允许滚动
+        // 这是解决“一开始滑不动”的关键
+        document.documentElement.style.overflowY = 'auto';
+        
+        // 2. 强制 body 为 visible
+        // 这是解决“Sticky 失效”的关键。如果设为 auto，sticky 就会失效。
+        document.body.style.overflow = 'visible';
+        
+        // 3. 处理横向溢出 (防止出现水平滚动条)
+        // 使用 clip 是最现代且不破坏 sticky 的做法，如果不支持会自动回退
+        document.body.style.overflowX = 'clip';
+        
+        // 解决 iOS/Safari 点击后的焦点锁定问题
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+        }
+        window.focus();
+    }
 
-			// 执行时机保持不变
-			unlockScroll();
-			document.addEventListener('astro:page-load', unlockScroll);
-			setTimeout(unlockScroll, 100);
-			setTimeout(unlockScroll, 500);
-		</script>
+    // 立即执行 (防止白屏期间卡顿)
+    unlockScroll();
+
+    // Astro 页面切换后执行
+    document.addEventListener('astro:page-load', unlockScroll);
+    
+    // 之后的补救措施 (应对某些极端情况下的样式注入)
+    document.addEventListener('astro:after-swap', unlockScroll);
+    setTimeout(unlockScroll, 100);
+</script>
 	</body>
 </html>
