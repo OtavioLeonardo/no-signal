@@ -7,8 +7,9 @@
 /* --- 1. Base Layer: 苹果风格全局背景 --- */
 @layer base {
     body {
-        /* 浅色模式：经典的 Apple 灰白底色，避免刺眼的纯白 */
         @apply bg-[#F5F5F7] text-[#1D1D1F] antialiased;
+        /* ✅ 新增：防止横向溢出，但使用 clip 以保护 sticky 上下文 */
+        overflow-x: clip;
     }
 
     .dark body {

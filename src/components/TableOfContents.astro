@@ -1,4 +1,5 @@
 ---
+// src/components/TableOfContents.astro
 import type { MarkdownHeading } from 'astro';
 
 interface Props {
@@ -7,86 +8,57 @@ interface Props {
 
 const { headings } = Astro.props;
 
-// 如果 headings 是 undefined，就用空数组代替，防止 .filter 报错
-const toc = (headings || []).filter((h) => h.depth > 1 && h.depth < 4);
+// 过滤掉 H1 (通常是文章标题) 和过深的层级，只保留 H2 和 H3
+const toc = headings.filter((h) => h.depth > 1 && h.depth < 4);
 ---
 
-{/* 只有当 toc 数组有内容时，才渲染下面的 HTML */}
-{toc.length > 0 && (
-  <nav class="toc-container text-sm">
-    <h2 class="font-bold text-stone-900 dark:text-stone-100 mb-4 tracking-wider uppercase text-xs">
-      On This Page
-    </h2>
-    <ul class="border-l border-stone-200 dark:border-stone-800">
-      {toc.map((heading) => (
+<nav class="toc-container hidden lg:block sticky top-24 self-start max-h-[80vh] overflow-y-auto pr-4">
+  <h2 class="text-sm font-bold text-gray-900 dark:text-gray-100 mb-4 uppercase tracking-wider">
+    目录
+  </h2>
+  <ul class="space-y-2 text-sm border-l border-gray-200 dark:border-gray-700">
+    {
+      toc.map((heading) => (
         <li>
           <a
             href={`#${heading.slug}`}
-            class:list={[
-              "toc-link block py-1.5 transition-all border-l-2 -ml-[2px] border-transparent", 
-              // 基础颜色 (石色)
-              "text-stone-500 dark:text-stone-500",
-              // Hover 颜色 (橙色)
-              "hover:text-orange-600 dark:hover:text-orange-500 hover:border-orange-300 dark:hover:border-orange-800",
-              // 根据层级调整缩进
-              heading.depth === 2 ? "pl-4" : "pl-8 text-xs"
-            ]}
+            class={`toc-link block py-1 pl-4 transition-colors hover:text-blue-600 dark:hover:text-blue-400 text-gray-500 dark:text-gray-400 ${
+              heading.depth === 3 ? 'ml-4' : ''
+            }`}
           >
             {heading.text}
           </a>
         </li>
-      ))}
-    </ul>
-  </nav>
-)}
-
-<style>
-  :global(.toc-link.active) {
-    color: #ea580c;
-    font-weight: 700;
-    border-left-color: #ea580c;
-    background-color: #fff7ed; 
-  }
-
-  :global(html.dark .toc-link.active) {
-    color: #f97316; 
-    border-left-color: #f97316;
-    background-color: #292524;
-  }
-</style>
+      ))
+    }
+  </ul>
+</nav>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const tocLinks = document.querySelectorAll('.toc-link');
-    
-    if (tocLinks.length === 0) return;
-
-    const headings = document.querySelectorAll('article h2, article h3');
-
-    const observerOptions = {
-      root: null,
-      rootMargin: '-100px 0px -66% 0px', 
-      threshold: 0
-    };
-
-    const observer = new IntersectionObserver((entries) => {
+  // 滚动监听脚本：高亮当前阅读的标题
+  const observer = new IntersectionObserver(
+    (entries) => {
       entries.forEach((entry) => {
+        const id = entry.target.getAttribute('id');
+        const link = document.querySelector(`.toc-link[href="#${id}"]`);
+        
         if (entry.isIntersecting) {
-          tocLinks.forEach((link) => link.classList.remove('active'));
-          
-          const id = entry.target.getAttribute('id');
-          if (id) {
-             const activeLink = document.querySelector(`.toc-link[href="#${CSS.escape(id)}"]`);
-             if (activeLink) {
-                activeLink.classList.add('active');
-             }
+          // 移除其他激活状态
+          document.querySelectorAll('.toc-link').forEach((l) => {
+            l.classList.remove('text-blue-600', 'font-medium', 'border-l-2', 'border-blue-600', '-ml-[1px]');
+          });
+          // 添加激活状态
+          if (link) {
+            link.classList.add('text-blue-600', 'dark:text-blue-400', 'font-medium', 'border-l-2', 'border-blue-600', 'dark:border-blue-400', '-ml-[1px]');
           }
         }
       });
-    }, observerOptions);
+    },
+    { rootMargin: '-100px 0px -66% 0px' } // 调整触发区域
+  );
 
-    headings.forEach((heading) => {
-      observer.observe(heading);
-    });
+  // 监听所有文章内的标题
+  document.querySelectorAll('article h2, article h3').forEach((h) => {
+    observer.observe(h);
   });
 </script>

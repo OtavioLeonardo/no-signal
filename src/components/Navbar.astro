@@ -90,29 +90,24 @@ import Section from './Section.astro';
 </header>
 
 <script>
-    // 1. 定义核心切换逻辑
     function initTheme() {
         const lightSwitches = document.querySelectorAll('.light-switch');
         const isDarkTheme = localStorage.getItem('theme') === 'dark';
 
-        // A. 初始化：根据 LocalStorage 设置 class
         if (isDarkTheme) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
 
-        // B. 初始化：设置所有开关状态
         lightSwitches.forEach((lightSwitch) => {
             (lightSwitch as HTMLInputElement).checked = isDarkTheme;
         });
 
-        // C. 绑定事件
         lightSwitches.forEach((lightSwitch) => {
             lightSwitch.addEventListener('change', () => {
                 const isChecked = (lightSwitch as HTMLInputElement).checked;
                 
-                // 切换 HTML class
                 if (isChecked) {
                     document.documentElement.classList.add('dark');
                     localStorage.setItem('theme', 'dark');
@@ -121,7 +116,6 @@ import Section from './Section.astro';
                     localStorage.setItem('theme', 'light');
                 }
 
-                // 同步所有开关的状态
                 document.querySelectorAll('.light-switch').forEach((s) => {
                     (s as HTMLInputElement).checked = isChecked;
                 });
@@ -129,16 +123,13 @@ import Section from './Section.astro';
         });
     }
 
-    // 2. 监听 'astro:page-load' 事件
     document.addEventListener('astro:page-load', initTheme);
-    
-    // 3. 处理移动端菜单的逻辑
+
     document.addEventListener('astro:page-load', () => {
         const mobileMenuButton = document.getElementById('mobile-menu-button');
         const mobileMenu = document.getElementById('mobile-menu');
 
         if (mobileMenuButton && mobileMenu) {
-            // 每次页面加载先重置菜单状态
             mobileMenu.classList.add('hidden');
             mobileMenuButton.setAttribute('aria-expanded', 'false');
             mobileMenuButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>`;
@@ -148,7 +139,6 @@ import Section from './Section.astro';
                 mobileMenuButton.setAttribute('aria-expanded', (!expanded).toString());
                 mobileMenu.classList.toggle('hidden');
 
-                // 切换图标
                 if (!expanded) {
                     mobileMenuButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>`;
                 } else {

@@ -108,27 +108,22 @@ const {
 		{/* ✅ 新增：强制解锁滚动的脚本 */}
 		<script is:inline>
 			function unlockScroll() {
-				// 强制重置滚动属性
-				document.body.style.overflow = 'auto';
-				// 如果需要隐藏横向滚动，手动设置 overflowX
-				document.body.style.overflowX = 'hidden'; 
-				document.documentElement.style.overflow = 'auto';
+				// 1. 移除内联样式，而不是设置为 'auto'
+				// 这会将滚动控制权交还给 HTML Viewport，恢复 Sticky 功能
+				document.body.style.removeProperty('overflow');
+				document.body.style.removeProperty('overflow-x');
+				document.documentElement.style.removeProperty('overflow');
 				
-				// 强制移除焦点，解决 iOS/Safari 下的焦点锁定问题
+				// 2. 强制移除焦点 (保留你原有的逻辑)
 				if (document.activeElement instanceof HTMLElement) {
 					document.activeElement.blur();
 				}
-				// 强制窗口获取焦点
 				window.focus();
 			}
 
-			// 1. 立即执行
+			// 执行时机保持不变
 			unlockScroll();
-
-			// 2. 页面加载完成（针对 ClientRouter）时执行
 			document.addEventListener('astro:page-load', unlockScroll);
-			
-			// 3. 延迟执行（针对 hydration 滞后）
 			setTimeout(unlockScroll, 100);
 			setTimeout(unlockScroll, 500);
 		</script>
