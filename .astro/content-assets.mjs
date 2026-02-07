@@ -1,0 +1,6 @@
+
+import __ASTRO_IMAGE_IMPORT_1VeHQS from "@/assets/images/posts/fuji-speedway/image/src.svg?astroContentImageFlag=&importer=src%2Fcontent%2Fposts%2Ffuji-speedway.mdoc";
+import __ASTRO_IMAGE_IMPORT_v4YqH from "@/assets/images/posts/sim-racing-training/image/src.png?astroContentImageFlag=&importer=src%2Fcontent%2Fposts%2Fsim-racing-training.mdoc";
+import __ASTRO_IMAGE_IMPORT_24CVed from "@/assets/images/posts/赛车的心态问题/image/src.png?astroContentImageFlag=&importer=src%2Fcontent%2Fposts%2F%E8%B5%9B%E8%BD%A6%E7%9A%84%E5%BF%83%E6%80%81%E9%97%AE%E9%A2%98.mdoc";
+export default new Map([["@/assets/images/posts/fuji-speedway/image/src.svg?astroContentImageFlag=&importer=src%2Fcontent%2Fposts%2Ffuji-speedway.mdoc", __ASTRO_IMAGE_IMPORT_1VeHQS], ["@/assets/images/posts/sim-racing-training/image/src.png?astroContentImageFlag=&importer=src%2Fcontent%2Fposts%2Fsim-racing-training.mdoc", __ASTRO_IMAGE_IMPORT_v4YqH], ["@/assets/images/posts/赛车的心态问题/image/src.png?astroContentImageFlag=&importer=src%2Fcontent%2Fposts%2F%E8%B5%9B%E8%BD%A6%E7%9A%84%E5%BF%83%E6%80%81%E9%97%AE%E9%A2%98.mdoc", __ASTRO_IMAGE_IMPORT_24CVed]]);
+		
