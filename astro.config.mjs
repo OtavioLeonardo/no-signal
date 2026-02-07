@@ -9,6 +9,8 @@ import markdoc from '@astrojs/markdoc';
 import keystatic from '@keystatic/astro';
 import { visualizer } from "rollup-plugin-visualizer";
 
+import cloudflare from '@astrojs/cloudflare';
+
 const options = {
     // ... (保持不变) ...
     onVisitLine(node) {
@@ -43,7 +45,7 @@ export default defineConfig({
 
     // ✅ [关键] 保持 static，不加 adapter
     // Cloudflare Pages 会自动托管生成的 dist 文件夹
-    output: 'static',
+    output: 'server',
 
     // ❌ [删除] 整个 adapter 配置块都要删掉
     // adapter: vercelStatic({ ... }),
@@ -72,5 +74,7 @@ export default defineConfig({
                 },
             },
         }
-    }
+    },
+
+    adapter: cloudflare()
 });
