@@ -1,0 +1,110 @@
+---
+// src/components/MobileReadingProgress.astro
+---
+
+<div 
+  id="reading-progress-bar"
+  class="fixed top-3 left-3 z-[60] flex items-center gap-2 rounded-full bg-white/90 dark:bg-zinc-900/90 py-1.5 pl-1.5 pr-4 shadow-lg ring-1 ring-zinc-900/5 dark:ring-white/10 backdrop-blur-md transition-all duration-300 opacity-0 translate-y-[-10px]"
+>
+  <button 
+    onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+    class="relative flex h-8 w-8 items-center justify-center rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors group"
+    aria-label="Back to top"
+  >
+    <svg class="h-full w-full -rotate-90 transform" viewBox="0 0 36 36">
+      <path
+        class="text-zinc-200 dark:text-zinc-700"
+        stroke-width="3"
+        stroke="currentColor"
+        fill="none"
+        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+      />
+      <path
+        id="progress-ring"
+        class="text-orange-600 transition-all duration-100 ease-out"
+        stroke-dasharray="100, 100"
+        stroke-dashoffset="100"
+        stroke-width="3"
+        stroke-linecap="round"
+        stroke="currentColor"
+        fill="none"
+        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+      />
+    </svg>
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        stroke-width="2" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" 
+        class="absolute inset-0 m-auto h-3 w-3 text-zinc-500 opacity-0 transition-opacity group-hover:opacity-100"
+    >
+        <path d="m18 15-6-6-6 6"/>
+    </svg>
+  </button>
+
+  <div class="flex flex-col justify-center">
+    <span class="text-[10px] uppercase font-bold text-zinc-400 leading-none mb-0.5">Reading</span>
+    <span 
+      id="current-heading" 
+      class="max-w-[150px] truncate text-xs font-medium text-zinc-900 dark:text-zinc-100 leading-none"
+    >
+      Top of page
+    </span>
+  </div>
+</div>
+
+<script>
+  function initProgress() {
+    const container = document.getElementById('reading-progress-bar');
+    const ring = document.getElementById('progress-ring');
+    const headingDisplay = document.getElementById('current-heading');
+    
+    if (!container || !ring || !headingDisplay) return;
+
+    // 1. 滚动监听：更新圆环进度
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrollPercent = scrollTop / docHeight;
+      
+      // 计算 stroke-dashoffset (100 - percent)
+      const offset = 100 - (scrollPercent * 100);
+      ring.style.strokeDashoffset = offset.toString();
+
+      // 控制组件显示/隐藏：滚动超过 100px 才显示
+      if (scrollTop > 100) {
+        container.classList.remove('opacity-0', 'translate-y-[-10px]');
+      } else {
+        container.classList.add('opacity-0', 'translate-y-[-10px]');
+      }
+    }, { passive: true });
+
+    // 2. 标题监听：更新文字
+    const headings = Array.from(document.querySelectorAll('article h2, article h3'));
+    
+    if (headings.length > 0) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              headingDisplay.textContent = entry.target.textContent || 'Reading...';
+            }
+          });
+        },
+        { 
+          rootMargin: '-80px 0px -80% 0px' // 视口顶部 80px 开始触发，底部忽略
+        }
+      );
+
+      headings.forEach((h) => observer.observe(h));
+    }
+  }
+
+  // Astro 页面切换兼容
+  document.addEventListener('astro:page-load', initProgress);
+  // 首次加载
+  initProgress();
+</script>

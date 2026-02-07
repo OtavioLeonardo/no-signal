@@ -23,18 +23,18 @@ const groupedPosts = allPosts.reduce((acc, post) => {
 const years = Object.keys(groupedPosts).sort((a, b) => Number(b) - Number(a));
 ---
 
-<Base head={{ title: `Writing - ${title}`, description }}>
+<Base head={{ title: `归档 - ${title}`, description }}>
     
-    {/* 1. 顶部 Header：极简大标题 */}
+    {/* 1. 顶部 Header */}
     <Section>
         <div class="py-12 md:py-20 border-b border-gray-100 dark:border-white/5">
             <h1 class="text-4xl md:text-6xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
-                Writing
+                创作归档
             </h1>
             <div class="flex items-center gap-3 text-lg text-gray-500 font-medium">
-                <span class="tracking-wide">Technical & Thoughts</span>
+                <span class="tracking-wide">技巧 · 思辨 · 随感</span>
                 <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700"></span>
-                <span>{allPosts.length} Articles</span>
+                <span>共收录 {allPosts.length} 篇</span>
             </div>
         </div>
     </Section>
@@ -44,18 +44,16 @@ const years = Object.keys(groupedPosts).sort((a, b) => Number(b) - Number(a));
             {years.map((year) => (
                 <div class="relative">
                     
-                    {/* 2. 年份区域：设计成左侧的巨大水印 或 顶部的吸附标题 */}
-                    {/* 这里采用“左侧悬浮 + 顶部吸附”混合风格，更有设计感 */}
+                    {/* 2. 年份区域 */}
                     <div class="flex flex-col md:flex-row gap-8 md:gap-16">
                         
-                        {/* 年份：在桌面端是左侧固定，在移动端是顶部吸附 */}
+                        {/* 左侧年份水印 */}
                         <div class="md:w-32 flex-shrink-0">
-                            <div class="sticky top-20 text-left">
-                                <span class="block text-6xl md:text-8xl font-bold text-gray-100 dark:text-white/5 tracking-tighter leading-none select-none">
+                            <div class="sticky top-24 text-left">
+                                <span class="block text-6xl md:text-8xl font-bold text-gray-300 dark:text-gray-700 tracking-tighter leading-none select-none">
                                     {year}
                                 </span>
-                                {/* 装饰性线条 */}
-                                <div class="hidden md:block w-12 h-1 bg-gray-100 dark:bg-white/10 mt-4 ml-1"></div>
+                                <div class="hidden md:block w-12 h-1.5 bg-gray-300 dark:bg-gray-700 mt-4 ml-1 rounded-full"></div>
                             </div>
                         </div>
 
@@ -63,7 +61,8 @@ const years = Object.keys(groupedPosts).sort((a, b) => Number(b) - Number(a));
                         <div class="flex-1 flex flex-col">
                             {groupedPosts[year]!.map((post) => {
                                 const dateObj = new Date(post.data.pubDate);
-                                const month = dateObj.toLocaleDateString('en-US', { month: 'short' });
+                                // ✅ 汉化点：日期改为中文格式 (例如：1月 05)
+                                const month = (dateObj.getMonth() + 1).toString() + '月';
                                 const day = dateObj.getDate().toString().padStart(2, '0');
 
                                 return (
@@ -73,7 +72,7 @@ const years = Object.keys(groupedPosts).sort((a, b) => Number(b) - Number(a));
                                     >
                                         <div class="flex flex-col md:flex-row md:items-baseline gap-4 md:gap-8">
                                             
-                                            {/* 日期列：Mono 字体，极简风格 */}
+                                            {/* 日期列 */}
                                             <div class="flex md:flex-col items-baseline md:items-end gap-2 md:gap-0 w-full md:w-24 flex-shrink-0 text-gray-400 font-mono text-sm md:text-base">
                                                 <span class="font-bold text-gray-900 dark:text-gray-200">{month} {day}</span>
                                                 <span class="hidden md:inline text-xs opacity-50">/ {year}</span>
@@ -81,12 +80,10 @@ const years = Object.keys(groupedPosts).sort((a, b) => Number(b) - Number(a));
 
                                             {/* 内容主体 */}
                                             <div class="flex-1 min-w-0">
-                                                {/* 标题 */}
-                                                <h3 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                                <h3 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                                                     {post.data.title}
                                                 </h3>
 
-                                                {/* 标签 */}
                                                 <div class="flex flex-wrap gap-2 mb-3">
                                                     {post.data.tags && post.data.tags.map((tag: string) => (
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300 uppercase tracking-wider">
@@ -95,18 +92,16 @@ const years = Object.keys(groupedPosts).sort((a, b) => Number(b) - Number(a));
                                                     ))}
                                                 </div>
 
-                                                {/* 摘要 */}
                                                 <p class="text-base text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed max-w-2xl">
                                                     {post.data.description}
                                                 </p>
                                                 
-                                                {/* 移动端显示的 Read More */}
-                                                <div class="md:hidden mt-4 text-sm font-semibold text-blue-600">
-                                                    Read Article →
+                                                <div class="md:hidden mt-4 text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                                                    阅读全文 →
                                                 </div>
                                             </div>
 
-                                            {/* 桌面端悬浮箭头 (仅 Hover 显示) */}
+                                            {/* 桌面端悬浮箭头 */}
                                             <div class="hidden md:flex items-center self-center justify-center w-10 h-10 rounded-full border border-gray-100 dark:border-white/10 text-gray-300 opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                                             </div>
@@ -120,7 +115,7 @@ const years = Object.keys(groupedPosts).sort((a, b) => Number(b) - Number(a));
             ))}
         </div>
         
-        {/* 底部装饰：The End */}
+        {/* 底部装饰点 */}
         <div class="py-20 text-center">
             <span class="inline-block w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700 mx-1"></span>
             <span class="inline-block w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700 mx-1"></span>

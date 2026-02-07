@@ -30,7 +30,7 @@ import Section from './Section.astro';
 			<div class="hidden sm:flex items-center gap-6">
 				<nav>
 					<ul class="flex items-center gap-1 font-medium text-sm">
-						{['TAGS', 'POSTS', 'DIARY', 'TOOLS', 'NOW', 'RESEARCH'].map((item) => (
+						{['TAGS', 'POSTS', 'DIARY', 'TOOLS', 'RESEARCH'].map((item) => (
 							<li>
 								<a 
 									href={item === 'POSTS' ? '/posts' : `/${item.toLowerCase()}`} 
@@ -70,7 +70,7 @@ import Section from './Section.astro';
 			class="hidden sm:hidden mt-2 mb-4 overflow-hidden rounded-2xl border border-black/5 bg-white/90 backdrop-blur-xl shadow-lg dark:bg-stone-900/90 dark:border-white/10"
 		>
 			<nav class="flex flex-col p-2 text-sm font-medium">
-				{['TAGS', 'POSTS', 'DIARY', 'TOOLS', 'RESEARCH', 'NOW'].map((item) => (
+				{['TAGS', 'POSTS', 'DIARY', 'TOOLS', 'RESEARCH'].map((item) => (
 					<a href={item === 'POSTS' ? '/posts' : `/${item.toLowerCase()}`} class="px-4 py-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
 						{item}
 					</a>

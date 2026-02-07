@@ -1,24 +1,28 @@
 ---
 import Base from '@/layouts/Base.astro';
 import Section from '@/components/Section.astro';
+import { AppConfig } from '@/utils/AppConfig';
 
-// 1. 数据结构改为分组模式
+const { title } = AppConfig;
+
+// 1. 数据结构 (汉化版)
 const toolGroups = [
   {
-    category: "Sim Racing",
+    category: "赛道工程",
+    sub: "Sim Racing",
     icon: "🏁",
     color: "text-red-500",
     list: [
       {
         name: "LMU PitWall",
-        description: "Le Mans Ultimate 必备策略数据查询与计算工具。",
+        description: "Le Mans Ultimate 必备策略数据查询与燃油计算工具。",
         url: "https://otavioleonardo.github.io/lmu-pitwall/",
         icon: "🏎️",
         tag: "Web App"
       },
       {
         name: "Motec Setup Guide",
-        description: "基于数据分析的车辆调校速查表。",
+        description: "基于遥测数据分析的赛车物理调校速查手册。",
         url: "#",
         icon: "📈",
         tag: "PDF"
@@ -26,20 +30,21 @@ const toolGroups = [
     ]
   },
   {
-    category: "Development",
+    category: "代码实验",
+    sub: "Dev Labs",
     icon: "💻",
     color: "text-blue-500",
     list: [
       {
         name: "Sudoku Solver",
-        description: "回溯算法演示，快速求解数独谜题。",
+        description: "基于回溯算法的数独求解器演示。",
         url: "#",
         icon: "🧩",
-        tag: "Algorithm"
+        tag: "Algo"
       },
       {
-        name: "Clock App",
-        description: "使用 Swift 开发的极简时钟应用。",
+        name: "Zen Clock",
+        description: "使用 Swift 开发的极简主义时钟应用。",
         url: "#",
         icon: "⌚",
         tag: "iOS"
@@ -47,13 +52,14 @@ const toolGroups = [
     ]
   },
   {
-    category: "Life & Learning",
+    category: "生活与知",
+    sub: "Life & Learning",
     icon: "☕",
     color: "text-amber-500",
     list: [
       {
-        name: "My German Notes",
-        description: "A1-B1 德语语法笔记与复习卡片。",
+        name: "Deutsch Notizen",
+        description: "A1-B1 德语语法结构笔记与 Anki 复习卡片。",
         url: "#",
         icon: "🇩🇪",
         tag: "Notion"
@@ -63,72 +69,84 @@ const toolGroups = [
 ];
 ---
 
-<Base head={{ title: 'Workspace', description: 'Curated tools and projects' }}>
+<Base head={{ title: `数字工坊 - ${title}`, description: 'Curated tools and projects' }}>
   <Section>
-    <div class="py-12 md:py-16 max-w-5xl mx-auto">
+    <div class="py-12 md:py-20 max-w-5xl mx-auto">
       
-      {/* 头部：更简洁，减少留白 */}
-      <div class="mb-12 border-b border-gray-100 dark:border-white/10 pb-8">
-        <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 dark:text-white mb-3">
-          Workspace
+      {/* 1. Header 区域：保持全站统一左对齐风格 */}
+      <div class="mb-16 border-b border-gray-100 dark:border-white/5 pb-8">
+        <h1 class="text-4xl md:text-6xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
+          数字工坊
         </h1>
-        <p class="text-base text-gray-500 dark:text-gray-400">
-          A collection of tools, small projects, and digital toys.
-        </p>
+        <div class="flex items-center gap-3 text-lg text-gray-500 font-medium">
+            <span class="tracking-wide">利器 · 原型 · 玩具</span>
+            <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700"></span>
+            <span>{toolGroups.reduce((acc, g) => acc + g.list.length, 0)} 个项目</span>
+        </div>
       </div>
 
-      <div class="space-y-12">
+      <div class="space-y-16">
         {toolGroups.map((group) => (
           <section class="animate-enter-content">
             
-            {/* 分类标题 */}
-            <div class="flex items-center gap-3 mb-5 px-1">
-              <span class={`text-xl ${group.color}`}>{group.icon}</span>
-              <h2 class="text-lg font-bold text-gray-900 dark:text-white tracking-tight">
+            {/* 分类标题：左侧竖线装饰 */}
+            <div class="flex items-baseline gap-3 mb-6 px-1">
+              <span class={`text-xl self-center ${group.color} filter drop-shadow-sm`}>{group.icon}</span>
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
                 {group.category}
               </h2>
+              <span class="text-sm font-mono text-gray-400 dark:text-gray-600 font-medium tracking-wide uppercase opacity-80">
+                / {group.sub}
+              </span>
             </div>
 
-            {/* 紧凑网格布局: 手机1列，电脑2列 */}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* 卡片网格：增加 hover 时的位移感 */}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {group.list.map((tool) => (
                 <a 
                   href={tool.url} 
                   target={tool.url.startsWith('http') ? "_blank" : "_self"}
-                  class="group relative flex items-start gap-4 p-4 rounded-xl bg-white dark:bg-[#151516] border border-black/5 dark:border-white/10 transition-all duration-200 hover:bg-gray-50 dark:hover:bg-white/5 hover:border-black/10 dark:hover:border-white/20"
+                  class="group relative flex items-start gap-5 p-5 rounded-2xl bg-gray-50 dark:bg-[#151516] border border-gray-100 dark:border-white/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:bg-white dark:hover:bg-[#1A1A1C] hover:border-gray-200 dark:hover:border-white/10"
                 >
-                  {/* Icon: 缩小尺寸，更精致 */}
-                  <div class="shrink-0 flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-white/5 text-xl group-hover:scale-110 transition-transform duration-200">
+                  {/* Icon: 方形圆角容器 */}
+                  <div class="shrink-0 flex items-center justify-center w-12 h-12 rounded-xl bg-white dark:bg-white/5 text-2xl shadow-sm border border-gray-100 dark:border-white/5 group-hover:scale-105 transition-transform duration-300">
                     {tool.icon}
                   </div>
 
-                  {/* Content: 紧凑排列 */}
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center justify-between mb-0.5">
-                      <h3 class="font-semibold text-gray-900 dark:text-gray-100 truncate pr-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  {/* Content */}
+                  <div class="flex-1 min-w-0 pt-0.5">
+                    <div class="flex items-center justify-between mb-1">
+                      <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 truncate pr-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                         {tool.name}
                       </h3>
-                      {/* Tag: 右上角的小标签 */}
+                      
+                      {/* Tag: 胶囊样式 */}
                       {tool.tag && (
-                        <span class="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-white/5">
+                        <span class="shrink-0 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-200/50 dark:bg-white/10 text-gray-500 dark:text-gray-400 border border-transparent group-hover:border-gray-200 dark:group-hover:border-white/10 transition-colors">
                           {tool.tag}
                         </span>
                       )}
                     </div>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                    
+                    <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed opacity-90 group-hover:opacity-100">
                       {tool.description}
                     </p>
                   </div>
 
-                  {/* External Link Arrow (Opactiy hover effect) */}
-                  <div class="absolute top-4 right-4 text-gray-400 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
+                  {/* External Link Arrow */}
+                  <div class="absolute top-5 right-5 text-gray-300 dark:text-gray-600 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
                   </div>
                 </a>
               ))}
             </div>
           </section>
         ))}
+      </div>
+
+      {/* 底部装饰 */}
+      <div class="pt-20 pb-12 text-center opacity-20">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
       </div>
 
     </div>

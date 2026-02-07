@@ -12,106 +12,112 @@ allDiaries.sort((a, b) =>
     b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
 
+// 1. 数据分组逻辑调整：只按【年】分组，与 Post 页面保持一致
 const groupedDiaries = allDiaries.reduce((acc, diary) => {
-    const date = new Date(diary.data.pubDate);
-    const year = date.getFullYear().toString();
-    const month = date.toLocaleString('en-US', { month: 'long' });
-
-    if (!acc[year]) acc[year] = {};
-    if (!acc[year][month]) acc[year][month] = [];
-    
-    acc[year][month].push(diary);
+    const year = new Date(diary.data.pubDate).getFullYear().toString();
+    if (!acc[year]) {
+        acc[year] = [];
+    }
+    acc[year].push(diary);
     return acc;
-}, {} as Record<string, Record<string, CollectionEntry<'diary'>[]>>);
+}, {} as Record<string, CollectionEntry<'diary'>[]>);
 
 const years = Object.keys(groupedDiaries).sort((a, b) => Number(b) - Number(a));
-
-const monthOrder: Record<string, number> = {
-  'January': 0, 'February': 1, 'March': 2, 'April': 3, 'May': 4, 'June': 5,
-  'July': 6, 'August': 7, 'September': 8, 'October': 9, 'November': 10, 'December': 11
-};
 ---
 
-<Base head={{ title: `Diary - ${title}`, description }}>
+<Base head={{ title: `生活切片 - ${title}`, description }}>
     
+    {/* 1. Header 区域：完全复用 Post 页面的排版 */}
     <Section>
-        <div class="py-12 md:py-20 text-center border-b border-gray-100 dark:border-white/5">
+        <div class="py-12 md:py-20 border-b border-gray-100 dark:border-white/5">
             <h1 class="text-4xl md:text-6xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
-                Diary
+                生活切片
             </h1>
-            <p class="text-lg text-gray-500 font-medium tracking-wide opacity-80">
-                碎碎念 / Personal Log
-            </p>
+            <div class="flex items-center gap-3 text-lg text-gray-500 font-medium">
+                <span class="tracking-wide">瞬时 · 琐事 · 独白</span>
+                <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700"></span>
+                <span>共收录 {allDiaries.length} 条</span>
+            </div>
         </div>
     </Section>
 
     <Section>
-        <div class="py-10 space-y-20">
-            {years.map(year => {
-                const yearData = groupedDiaries[year]!;
-                const months = Object.keys(yearData).sort((a, b) => (monthOrder[b] ?? 0) - (monthOrder[a] ?? 0));
-
-                return (
-                    <div class="relative">
-                        <div class="sticky top-16 z-10 py-6 mb-8 bg-[#F5F5F7] dark:bg-black border-b border-gray-100 dark:border-white/5 transition-colors">
-                            <h2 class="text-5xl font-bold text-gray-900 dark:text-white tracking-tighter select-none pl-2 md:pl-4">
-                                {year}
-                            </h2>
+        <div class="py-10 space-y-24">
+            {years.map(year => (
+                <div class="relative">
+                    
+                    {/* 2. 布局结构：左侧年份 + 右侧列表 */}
+                    <div class="flex flex-col md:flex-row gap-8 md:gap-16">
+                        
+                        {/* 左侧年份水印 */}
+                        <div class="md:w-32 flex-shrink-0">
+                            <div class="sticky top-24 text-left">
+                                <span class="block text-6xl md:text-8xl font-bold text-gray-300 dark:text-gray-700 tracking-tighter leading-none select-none">
+                                    {year}
+                                </span>
+                                <div class="hidden md:block w-12 h-1.5 bg-gray-300 dark:bg-gray-700 mt-4 ml-1 rounded-full"></div>
+                            </div>
                         </div>
 
-                        <div class="space-y-12 pl-2 md:pl-4">
-                            {months.map(month => (
-                                <div class="relative">
-                                    <h3 class="flex items-center gap-4 text-sm font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-6">
-                                        <span class="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400"></span>
-                                        {month}
-                                    </h3>
+                        {/* 右侧列表 */}
+                        <div class="flex-1 flex flex-col">
+                            {groupedDiaries[year]!.map((post) => {
+                                const dateObj = new Date(post.data.pubDate);
+                                // 日期格式化：2月 07
+                                const month = (dateObj.getMonth() + 1).toString() + '月';
+                                const day = dateObj.getDate().toString().padStart(2, '0');
 
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {yearData[month]!.map((post) => {
-                                            const dateObj = new Date(post.data.pubDate);
-                                            const day = dateObj.getDate().toString().padStart(2, '0');
+                                return (
+                                    <a 
+                                        href={`/diary/${post.slug}`} 
+                                        class="group relative py-8 border-t first:border-t-0 border-gray-100 dark:border-white/5 transition-all duration-300 hover:bg-gray-50/50 dark:hover:bg-white/5 -mx-4 px-4 rounded-2xl md:mx-0 md:px-0 md:rounded-none md:hover:bg-transparent"
+                                    >
+                                        <div class="flex flex-col md:flex-row md:items-baseline gap-4 md:gap-8">
                                             
-                                            return (
-                                                <a 
-                                                    href={`/diary/${post.slug}`} 
-                                                    class="group relative flex items-start gap-4 p-5 rounded-2xl bg-white border border-gray-100 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:border-blue-100 dark:bg-[#1C1C1E] dark:border-white/5 dark:hover:border-white/10 dark:shadow-none"
-                                                >
-                                                    <div class="flex-shrink-0 flex flex-col items-center justify-center w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 text-gray-900 dark:bg-white/5 dark:border-white/5 dark:text-white group-hover:bg-blue-50 group-hover:text-blue-600 dark:group-hover:bg-blue-500/10 dark:group-hover:text-blue-400 transition-colors">
-                                                        <span class="text-lg font-bold font-mono leading-none">{day}</span>
-                                                    </div>
+                                            {/* 日期列 */}
+                                            <div class="flex md:flex-col items-baseline md:items-end gap-2 md:gap-0 w-full md:w-24 flex-shrink-0 text-gray-400 font-mono text-sm md:text-base">
+                                                <span class="font-bold text-gray-900 dark:text-gray-200">{month} {day}</span>
+                                                <span class="hidden md:inline text-xs opacity-50">/ {year}</span>
+                                            </div>
 
-                                                    <div class="flex-1 min-w-0 pt-0.5">
-                                                        <h4 class="text-base font-bold text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                                            {post.data.title}
-                                                        </h4>
-                                                        
-                                                        {post.data.description && (
-                                                            <p class="mt-1.5 text-sm text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
-                                                                {post.data.description}
-                                                            </p>
-                                                        )}
-                                                    </div>
+                                            {/* 内容主体 */}
+                                            <div class="flex-1 min-w-0">
+                                                <h3 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                                    {post.data.title}
+                                                </h3>
 
-                                                    <div class="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300 group-hover:text-blue-500">
-                                                            <path d="m9 18 6-6-6-6"/>
-                                                        </svg>
-                                                    </div>
-                                                </a>
-                                            )
-                                        })}
-                                    </div>
-                                </div>
-                            ))}
+                                                {/* 如果日记有标签，这里也可以显示，如果没有可以不写 */}
+                                                {/* <div class="flex flex-wrap gap-2 mb-3">...Tags...</div> */}
+
+                                                {/* 描述/摘要 */}
+                                                <p class="text-base text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed max-w-2xl">
+                                                    {post.data.description}
+                                                </p>
+                                                
+                                                <div class="md:hidden mt-4 text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                                                    阅读全文 →
+                                                </div>
+                                            </div>
+
+                                            {/* 桌面端悬浮箭头 */}
+                                            <div class="hidden md:flex items-center self-center justify-center w-10 h-10 rounded-full border border-gray-100 dark:border-white/10 text-gray-300 opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                                            </div>
+                                        </div>
+                                    </a>
+                                )
+                            })}
                         </div>
                     </div>
-                );
-            })}
+                </div>
+            ))}
         </div>
         
-        <div class="pt-12 pb-20 text-center opacity-20">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        {/* 底部装饰点 */}
+        <div class="py-20 text-center">
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700 mx-1"></span>
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700 mx-1"></span>
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700 mx-1"></span>
         </div>
     </Section>
 </Base>

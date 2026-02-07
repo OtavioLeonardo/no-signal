@@ -1,7 +1,5 @@
 ---
-import Heading from '@/components/Heading.astro';
 import Section from '@/components/Section.astro';
-import Tag from '@/components/Tag.astro';
 import Base from '@/layouts/Base.astro';
 import { AppConfig } from '@/utils/AppConfig';
 import { getCollection } from 'astro:content';
@@ -10,10 +8,9 @@ const { title, description } = AppConfig;
 
 const allPosts = await getCollection('posts');
 
+// 统计标签数量
 const tagMap: Record<string, number> = {};
-
 allPosts.forEach((post) => {
-    // 确保 tags 存在再遍历
     post.data.tags?.forEach((tag) => {
         if (tagMap[tag]) {
             tagMap[tag]++;
@@ -23,23 +20,67 @@ allPosts.forEach((post) => {
     });
 });
 
+// 按数量降序排列
 const sortedTags = Object.entries(tagMap).sort((a, b) => b[1] - a[1]);
 ---
 
-<Base head={{ title, description }}>
-	<Section><Heading title="Posts by Tag" /></Section>
-	<div class="mx-auto grid w-full max-w-screen-md grid-cols-1 gap-x-6 px-4 md:grid-cols-2 md:px-0">
-		{
-			sortedTags.map(([tag, count]) => (
-				<a
-					class="group row-span-1 flex justify-between py-2 hover:text-orange-600"
-					href={`/tags/${tag}`}
-				>
-                    {/* 这里 Tag 组件如果还需要 props 调整，请确保 Tag 组件也没问题 */}
-					<Tag tag={tag} />
-					<p>{count}</p>
-				</a>
-			))
-		}
-	</div>
+<Base head={{ title: `灵感索引 - ${title}`, description }}>
+    
+    {/* 1. Header 区域：保持全站统一左对齐风格 */}
+    <Section>
+        <div class="py-12 md:py-20 border-b border-gray-100 dark:border-white/5">
+            <h1 class="text-4xl md:text-6xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
+                灵感索引
+            </h1>
+            <div class="flex items-center gap-3 text-lg text-gray-500 font-medium">
+                <span class="tracking-wide">脉络 · 关键词 · 聚合</span>
+                <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700"></span>
+                <span>共计 {sortedTags.length} 个话题</span>
+            </div>
+        </div>
+    </Section>
+
+    <Section>
+        <div class="py-12 md:py-16">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                {sortedTags.map(([tag, count]) => (
+                    <a
+                        href={`/tags/${tag}`}
+                        class="group flex items-center justify-between p-5 rounded-2xl bg-gray-50 dark:bg-[#1C1C1E] border border-gray-100 dark:border-white/5 transition-all duration-300 hover:bg-white dark:hover:bg-white/10 hover:shadow-lg hover:-translate-y-1 hover:border-indigo-100 dark:hover:border-white/10"
+                    >
+                        <div class="flex items-center gap-3">
+                            {/* 装饰性的 Hash 符号 */}
+                            <span class="text-xl font-bold text-gray-300 dark:text-gray-600 group-hover:text-indigo-400 transition-colors">
+                                #
+                            </span>
+                            <span class="text-lg font-bold text-gray-900 dark:text-white tracking-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                {tag}
+                            </span>
+                        </div>
+
+                        {/* 数量胶囊 */}
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-1 text-xs font-mono font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-md group-hover:border-indigo-100 dark:group-hover:border-white/20 transition-colors">
+                                {count}
+                            </span>
+                            
+                            {/* 悬浮出现的箭头 */}
+                            <svg 
+                                xmlns="http://www.w3.org/2000/svg" 
+                                width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" 
+                                class="text-gray-300 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 group-hover:text-indigo-400 transition-all duration-300"
+                            >
+                                <path d="m9 18 6-6-6-6"/>
+                            </svg>
+                        </div>
+                    </a>
+                ))}
+            </div>
+            
+            {/* 底部装饰 */}
+            <div class="pt-20 pb-12 text-center opacity-20">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+            </div>
+        </div>
+    </Section>
 </Base>

@@ -5,6 +5,7 @@ import { AppConfig } from '@/utils/AppConfig';
 import '@/styles/global.css';
 import PostHog from '@/components/posthog.astro';
 import { ClientRouter } from 'astro:transitions';
+import MobileReadingProgress from '@/components/MobileReadingProgress.astro';
 
 export interface Props {
 	head: {
@@ -99,43 +100,49 @@ const {
 		</script>
 	</head>
 	<body class="flex min-h-screen flex-col bg-[#F5F5F7] dark:bg-black selection:bg-blue-100 selection:text-blue-900 dark:selection:bg-blue-900 dark:selection:text-blue-100">
+		
+        {/* ✅ 2. 在这里插入组件 
+           class="lg:hidden": 意思是 "Large Screen Hidden"（大屏幕隐藏）。
+           这样它只会在手机/平板出现，不会和电脑版左侧的目录冲突。
+        */}
+        <div class="lg:hidden">
+            <MobileReadingProgress />
+        </div>
+
 		<Navbar />
 		<div class="flex-1 animate-enter-content">
 			<slot />
 		</div>
 		<Footer />
 
-		{/* ✅ 新增：强制解锁滚动的脚本 */}
+		{/* ✅ 3. 修复了格式的滚动解锁脚本 */}
 		<script is:inline>
-    function unlockScroll() {
-        // 1. 强制 html (documentElement) 允许滚动
-        // 这是解决“一开始滑不动”的关键
-        document.documentElement.style.overflowY = 'auto';
-        
-        // 2. 强制 body 为 visible
-        // 这是解决“Sticky 失效”的关键。如果设为 auto，sticky 就会失效。
-        document.body.style.overflow = 'visible';
-        
-        // 3. 处理横向溢出 (防止出现水平滚动条)
-        // 使用 clip 是最现代且不破坏 sticky 的做法，如果不支持会自动回退
-        document.body.style.overflowX = 'clip';
-        
-        // 解决 iOS/Safari 点击后的焦点锁定问题
-        if (document.activeElement instanceof HTMLElement) {
-            document.activeElement.blur();
-        }
-        window.focus();
-    }
+            function unlockScroll() {
+                // 1. 强制 html (documentElement) 允许滚动
+                document.documentElement.style.overflowY = 'auto';
+                
+                // 2. 强制 body 为 visible，让 Sticky 生效
+                document.body.style.overflow = 'visible';
+                
+                // 3. 处理横向溢出
+                document.body.style.overflowX = 'clip';
+                
+                // 解决 iOS/Safari 焦点问题
+                if (document.activeElement instanceof HTMLElement) {
+                    document.activeElement.blur();
+                }
+                window.focus();
+            }
 
-    // 立即执行 (防止白屏期间卡顿)
-    unlockScroll();
+            // 立即执行
+            unlockScroll();
 
-    // Astro 页面切换后执行
-    document.addEventListener('astro:page-load', unlockScroll);
-    
-    // 之后的补救措施 (应对某些极端情况下的样式注入)
-    document.addEventListener('astro:after-swap', unlockScroll);
-    setTimeout(unlockScroll, 100);
-</script>
+            // Astro 页面切换后执行
+            document.addEventListener('astro:page-load', unlockScroll);
+            
+            // 补救措施
+            document.addEventListener('astro:after-swap', unlockScroll);
+            setTimeout(unlockScroll, 100);
+        </script>
 	</body>
 </html>

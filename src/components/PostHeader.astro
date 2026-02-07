@@ -9,68 +9,87 @@ interface Props {
 	title: string;
 	author: string;
 	tags: string[];
-	minutesRead: string;
-	pubDate: string;
+	pubDate: string | Date; // 兼容 Date 对象或字符串
 	isPinned?: boolean;
 	img: any;
 }
 
-const { title, pubDate, tags, minutesRead, img, isPinned = false } = Astro.props;
-const formattedDate = formatDate(pubDate);
+const { title, author, pubDate, tags, img, isPinned = false } = Astro.props;
 
-// 核心修复：智能提取图片路径
+// 日期格式化
+const formattedDate = formatDate(new Date(pubDate).toISOString());
+
+// 图片处理逻辑：兼容本地图片对象和网络图片 URL
 const getImgSrc = (imageProp: any) => {
-    if (!imageProp) return null;
-    
-    // 情况 1：如果是字符串（直接的 URL 或 路径），直接返回
-    if (typeof imageProp === 'string') return imageProp;
-    
-    // 情况 2：如果是 Astro 的 ImageMetadata（包含 format/width/height），直接返回对象
-    if (imageProp.format) return imageProp;
-    
-    // 情况 3：如果是包装对象（{ src: "...", alt: "..." }），返回 .src
-    return imageProp.src;
+	if (!imageProp) return null;
+	if (typeof imageProp === 'string') return imageProp;
+	if (imageProp.format) return imageProp;
+	return imageProp.src;
 };
 
-// 获取最终的 src 和 alt
 const finalSrc = getImgSrc(img);
 const finalAlt = (typeof img === 'object' && img?.alt) ? img.alt : title;
 ---
 
 <Section>
-	<div class="flex flex-col items-center max-w-3xl mx-auto">
-        {/* Meta Info: Tags & Pinned */}
-		<div class="flex flex-col items-center gap-4 mb-6">
-            {isPinned && <PinnedBadge size="md" />}
+	<div class="flex flex-col items-center max-w-4xl mx-auto mt-6 md:mt-12">
+		
+		{/* 1. 顶部标签区：保持克制 */}
+		<div class="flex flex-col items-center gap-3 mb-6">
+			{isPinned && <PinnedBadge size="md" />}
 			<Tags tags={tags} withHref={true} />
 		</div>
 
-        {/* Title: Big, Bold, Tight */}
-		<h1 class="text-4xl md:text-5xl font-bold text-center tracking-tight leading-tight text-gray-900 dark:text-white mb-6">
+		{/* 2. 大标题：Apple 风格通常使用更紧凑的字距 (tracking-tight) */}
+		<h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-center tracking-tighter leading-[1.1] text-gray-900 dark:text-white mb-8 px-4">
 			{title}
 		</h1>
 
-        {/* Date & Read Time */}
-		<div class="flex items-center gap-3 text-sm font-medium text-gray-400 dark:text-gray-500 mb-10 uppercase tracking-widest">
-			<span>{formattedDate}</span>
-            <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700"></span>
-            <span>{minutesRead}</span>
+		{/* 3. Meta 信息行：作者 · 日期 · 阅读时间 */}
+		<div class="flex flex-wrap justify-center items-center gap-3 md:gap-5 text-sm font-medium text-gray-500 dark:text-gray-400 mb-12 border-b border-gray-100 dark:border-gray-800 pb-8 w-full md:w-auto">
+			
+			{/* 作者 */}
+			<div class="flex items-center gap-2 group cursor-default">
+				<div class="p-1 rounded-full bg-gray-100 dark:bg-gray-800 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 transition-colors">
+					<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-500 dark:text-gray-400 group-hover:text-indigo-500 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+						<circle cx="12" cy="7" r="4"></circle>
+					</svg>
+				</div>
+				<span class="text-gray-900 dark:text-gray-200">{author}</span>
+			</div>
+
+			{/* 分隔符 */}
+			<span class="text-gray-300 dark:text-gray-700 select-none">/</span>
+
+			{/* 日期 */}
+			<time datetime={typeof pubDate === 'string' ? pubDate : pubDate.toISOString()} class="tabular-nums text-gray-800 dark:text-gray-300">
+				{formattedDate}
+			</time>
 		</div>
 
-        {/* Hero Image: Rounded & Shadow */}
-        {/* 使用处理过的 finalSrc */}
+		{/* 4. 封面图：增加高级感阴影 */}
 		{finalSrc && (
-            <div class="w-full relative group">
-                <div class="absolute -inset-1 bg-gradient-to-r from-gray-200 to-gray-100 rounded-2xl blur opacity-20 dark:opacity-10 transition duration-1000 group-hover:opacity-40"></div>
-                
-                <Image 
-                    src={finalSrc} 
-                    alt={finalAlt} 
-                    class="relative w-full rounded-2xl shadow-sm border border-black/5 dark:border-white/10 dark:shadow-none"
-                    width={1200}
-                    height={630}
-                />
-            </div>
-        )}
+			<div class="w-full relative group rounded-2xl md:rounded-3xl overflow-hidden">
+				{/* 弥散光效背景 (Glow Effect) */}
+				<div class="absolute -inset-1 bg-gradient-to-t from-gray-100 to-transparent dark:from-gray-800 dark:to-transparent opacity-50 blur-xl"></div>
+				
+				<Image 
+					src={finalSrc} 
+					alt={finalAlt} 
+					class="relative w-full h-auto object-cover rounded-2xl md:rounded-3xl shadow-lg dark:shadow-2xl ring-1 ring-gray-900/5 dark:ring-white/10"
+					width={1200}
+					height={675}
+					loading="eager" 
+				/>
+				
+				{/* 图片说明 (如果有 alt 且不等于标题，可以显示为 caption) */}
+				{finalAlt && finalAlt !== title && (
+					<figcaption class="absolute bottom-4 left-4 right-4 text-center text-xs text-white/80 bg-black/30 backdrop-blur-md py-1 px-3 rounded-full mx-auto w-fit opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+						{finalAlt}
+					</figcaption>
+				)}
+			</div>
+		)}
 	</div>
 </Section>

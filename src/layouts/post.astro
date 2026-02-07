@@ -16,30 +16,19 @@ const heroImage = frontmatter.image?.src
 <Base head={{ title: frontmatter.title, description }}>
     <div class="mx-auto w-full max-w-screen-xl px-4 md:px-8 py-8 md:py-12">
         
-        {/* 关键设置：
-            1. lg:grid-cols-[240px_1fr]: 左侧 240px 给 TOC，右侧自适应
-            2. items-start: 必须！否则侧边栏高度会被拉伸到和文章一样高，导致 sticky 无法滑动
-        */}
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-[240px_1fr] lg:gap-12 items-start">
             
-            {/* 侧边栏设置：
-                1. sticky top-24: 吸附效果，距离顶部 24 (避开 Navbar)
-                2. hidden lg:block: 移动端隐藏
-                3. self-start: 双重保险，确保高度塌缩
-            */}
             <aside class="hidden lg:block sticky top-24 self-start">
                 <TableOfContents headings={headings} />
             </aside>
 
-            {/* 主内容区 */}
             <main class="min-w-0">
                 <article class="apple-card p-6 md:p-10 lg:p-12">
  
-                    <PostHeader
+                    <PostHeader 
                         title={frontmatter.title}
                         author={frontmatter.author}
                         tags={frontmatter.tags || []}
-                        minutesRead={frontmatter.minutesRead}
                         pubDate={frontmatter.pubDate}
                         isPinned={frontmatter.isPinned}
                         img={heroImage}
@@ -48,7 +37,7 @@ const heroImage = frontmatter.image?.src
                     <PostContent>
                         <slot />
                     </PostContent>
-           
+            
                 </article>
             </main>
 
