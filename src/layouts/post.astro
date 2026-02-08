@@ -14,6 +14,7 @@ const heroImage = frontmatter.image?.src
 ---
 
 <Base head={{ title: frontmatter.title, description }}>
+    {/* 1. 外层容器：保留 px-4，这是手机上的最后一道安全距离 (16px)，防止文字贴在屏幕边缘 */}
     <div class="mx-auto w-full max-w-screen-xl px-4 md:px-8 py-8 md:py-12">
         
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-[240px_1fr] lg:gap-12 items-start">
@@ -23,7 +24,12 @@ const heroImage = frontmatter.image?.src
             </aside>
 
             <main class="min-w-0">
-                <article class="apple-card p-6 md:p-10 lg:p-12">
+                {/* ✅ 核心修改在这里：
+                   1. 删掉了 'apple-card' 类。
+                   2. 手机端 (默认)：背景透明、无阴影、无边框、p-0 (无内边距，让文字更宽)。
+                   3. 桌面端 (md:)：白色背景、大阴影、圆角、灰色边框、大内边距。
+                */}
+                <article class="w-full p-0 md:p-10 lg:p-12 md:bg-white md:dark:bg-gray-900 md:shadow-2xl md:shadow-gray-200/50 md:dark:shadow-black/50 md:rounded-3xl md:border md:border-gray-100 md:dark:border-gray-800">
  
                     <PostHeader 
                         title={frontmatter.title}
