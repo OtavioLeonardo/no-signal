@@ -103,6 +103,10 @@ export default config({
             format: { contentField: 'content' },
             schema: {
                 title: fields.slug({ name: { label: '文章标题' } }),
+                series: fields.text({
+                    label: '所属系列 (Series)',
+                    description: '例如：Effective Java 笔记。同名文章会自动生成导航卡片。',
+                }),
                 layout: fields.text({ label: 'Layout', defaultValue: '../../layouts/post.astro' }),
                 pubDate: fields.date({ label: '发布日期' }),
                 description: fields.text({ label: 'SEO 描述', multiline: true }),
@@ -114,6 +118,22 @@ export default config({
                     alt: fields.text({ label: '图片描述 (Alt)' }),
                 }),
                 tags: fields.array(fields.text({ label: '标签' }), { label: '标签 (Tags)', itemLabel: (props: any) => props.value }),
+                updates: fields.array(
+                    fields.object({
+                        date: fields.date({ label: '更新日期', defaultValue: { kind: 'today' } }),
+                        title: fields.text({ label: '更新摘要/标题' }),
+                        content: fields.text({
+                            label: '详细内容',
+                            multiline: true,
+                            description: '关于这次观点变化的详细描述'
+                        }),
+                    }),
+                    {
+                        label: '文章更新日志 (Timeline)',
+                        description: '记录这篇博客随时间的观点变化',
+                        itemLabel: (props) => `${props.fields.date.value} - ${props.fields.title.value}`,
+                    }
+                ),
                 content: fields.markdoc({
                     label: '正文内容',
                     options: { image: { directory: 'src/assets/images/posts', publicPath: '@/assets/images/posts/' } },

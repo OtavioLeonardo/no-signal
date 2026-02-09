@@ -1,37 +1,60 @@
 ---
-import { AppConfig } from '@/utils/AppConfig';
-import Base from '@/layouts/Base.astro';
-import PostHeader from '@/components/PostHeader.astro';
-import PostContent from '@/components/PostContent.astro';
-import TableOfContents from '@/components/TableOfContents.astro';
+import { AppConfig } from "@/utils/AppConfig";
+import Base from "@/layouts/Base.astro";
+import PostHeader from "@/components/PostHeader.astro";
+import PostContent from "@/components/PostContent.astro";
+import TableOfContents from "@/components/TableOfContents.astro";
+import SeriesCard from "@/components/SeriesCard.astro";
 
 const { description } = AppConfig;
 const { frontmatter, headings } = Astro.props;
+const { slug } = Astro.params;
 
-const heroImage = frontmatter.image?.src 
-    ? { src: frontmatter.image.src, alt: frontmatter.image.alt || '' } 
-    : { src: '', alt: '' };
+const heroImage = frontmatter.image?.src
+    ? { src: frontmatter.image.src, alt: frontmatter.image.alt || "" }
+    : { src: "", alt: "" };
+
+const updates = frontmatter.updates || [];
+
+// ✅ 核心逻辑：判断是否有标题
+const hasHeadings = headings && headings.length > 0;
 ---
 
 <Base head={{ title: frontmatter.title, description }}>
-    {/* 1. 外层容器：保留 px-4，这是手机上的最后一道安全距离 (16px)，防止文字贴在屏幕边缘 */}
+    {/* 外层容器 */}
     <div class="mx-auto w-full max-w-screen-xl px-4 md:px-8 py-8 md:py-12">
-        
-        <div class="grid grid-cols-1 gap-8 lg:grid-cols-[240px_1fr] lg:gap-12 items-start">
-            
-            <aside class="hidden lg:block sticky top-24 self-start">
-                <TableOfContents headings={headings} />
-            </aside>
+        {
+            /* ✅ 布局控制：
+            - 如果有标题 (hasHeadings)：使用原来的 240px + 1fr 双栏布局
+            - 如果没标题：保持默认单列 (grid-cols-1)，内容自动居中
+        */
+        }
+        <div
+            class={`grid grid-cols-1 gap-8 items-start ${hasHeadings ? "lg:grid-cols-[240px_1fr] lg:gap-12" : "justify-center"}`}
+        >
+            {/* ✅ 侧边栏：只有在有标题时才渲染 */}
+            {
+                hasHeadings && (
+                    <aside class="hidden lg:block sticky top-24 self-start">
+                        <TableOfContents headings={headings} />
+                    </aside>
+                )
+            }
 
-            <main class="min-w-0">
-                {/* ✅ 核心修改在这里：
-                   1. 删掉了 'apple-card' 类。
-                   2. 手机端 (默认)：背景透明、无阴影、无边框、p-0 (无内边距，让文字更宽)。
-                   3. 桌面端 (md:)：白色背景、大阴影、圆角、灰色边框、大内边距。
-                */}
-                <article class="w-full p-0 md:p-10 lg:p-12 md:bg-white md:dark:bg-gray-900 md:shadow-2xl md:shadow-gray-200/50 md:dark:shadow-black/50 md:rounded-3xl md:border md:border-gray-100 md:dark:border-gray-800">
- 
-                    <PostHeader 
+            {
+                /* ✅ 主内容区域：
+                - 如果没标题：添加 max-w-4xl mx-auto 让文章居中且不要太宽（防止阅读体验变差）
+                - 如果有标题：保持 min-w-0 填满剩余空间
+            */
+            }
+            <main
+                class={`min-w-0 ${hasHeadings ? "" : "mx-auto w-full max-w-4xl"}`}
+            >
+                {/* 样式保持不变：手机端无框，电脑端卡片 */}
+                <article
+                    class="w-full p-0 md:p-10 lg:p-12 md:bg-white md:dark:bg-gray-900 md:shadow-2xl md:shadow-gray-200/50 md:dark:shadow-black/50 md:rounded-3xl md:border md:border-gray-100 md:dark:border-gray-800"
+                >
+                    <PostHeader
                         title={frontmatter.title}
                         author={frontmatter.author}
                         tags={frontmatter.tags || []}
@@ -39,14 +62,57 @@ const heroImage = frontmatter.image?.src
                         isPinned={frontmatter.isPinned}
                         img={heroImage}
                     />
-        
+
+                    <SeriesCard
+                        currentSeries={frontmatter.series}
+                        currentSlug={slug}
+                    />
+
                     <PostContent>
                         <slot />
                     </PostContent>
-            
+
+                    {/* 思考轨迹 */}
+                    {
+                        updates.length > 0 && (
+                            <div class="mt-16 pt-8 border-t border-gray-100 dark:border-gray-800">
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                                    <span>思考轨迹</span>
+                                    <span class="text-xs font-normal text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
+                                        不断进步
+                                    </span>
+                                </h3>
+
+                                <div class="relative pl-2">
+                                    <div class="absolute left-[7px] top-2 bottom-4 w-px bg-gray-200 dark:bg-gray-700" />
+                                    <div class="space-y-8">
+                                        {updates.map((item: any) => (
+                                            <div class="relative pl-8">
+                                                <div class="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-white dark:bg-gray-900 border-2 border-indigo-500 z-10" />
+                                                <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mb-2">
+                                                    <span class="font-mono text-sm text-indigo-500 font-medium">
+                                                        {new Date(
+                                                            item.date,
+                                                        ).toLocaleDateString(
+                                                            "zh-CN",
+                                                        )}
+                                                    </span>
+                                                    <span class="font-bold text-gray-900 dark:text-gray-100">
+                                                        {item.title}
+                                                    </span>
+                                                </div>
+                                                <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                                                    {item.content}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    }
                 </article>
             </main>
-
         </div>
     </div>
 </Base>

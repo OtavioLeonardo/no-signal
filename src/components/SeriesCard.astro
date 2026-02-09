@@ -1,0 +1,205 @@
+---
+import { getCollection } from "astro:content";
+
+const { currentSeries, currentSlug } = Astro.props;
+
+// 1. 性能阀门：没有系列直接退出
+if (!currentSeries) {
+    return null;
+}
+
+// 2. 获取同系列文章并排序
+const allPosts = await getCollection("posts");
+const seriesPosts = allPosts
+    .filter((post) => post.data.series === currentSeries)
+    .sort((a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf());
+
+if (seriesPosts.length <= 1) {
+    return null;
+}
+
+// 3. 找到当前文章的索引
+const currentIndex = seriesPosts.findIndex((post) => post.slug === currentSlug);
+
+// 4. 计算需要“默认显示”的范围 (上一篇 + 当前 + 下一篇)
+// 如果当前是第0篇，显示 0, 1, 2
+// 如果当前是最后一篇，显示 last-2, last-1, last
+const showStart = Math.max(
+    0,
+    Math.min(currentIndex - 1, seriesPosts.length - 3),
+);
+const showEnd = Math.min(seriesPosts.length, showStart + 3);
+
+// 筛选出默认显示的 3 篇
+const previewPosts = seriesPosts.slice(showStart, showEnd);
+---
+
+<div
+    class="my-8 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-white/5 p-5"
+>
+    {/* 标题栏：系列名称 + 计数 */}
+    <div class="flex items-center gap-2 mb-3">
+        <span
+            class="flex items-center justify-center w-5 h-5 rounded bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-300 text-[10px] font-bold"
+            >#</span
+        >
+        <h3
+            class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide"
+        >
+            系列：{currentSeries}
+        </h3>
+        <span
+            class="ml-auto text-xs text-gray-500 font-mono bg-gray-200/50 dark:bg-white/10 px-2 py-0.5 rounded-full"
+        >
+            共 {seriesPosts.length} 篇
+        </span>
+    </div>
+
+    {/* 使用 details 标签实现折叠效果 */}
+    <details class="group">
+        {
+            /* Summary 是“默认显示”的部分。
+            这里有一个小技巧：我们把“预览列表”放在 summary 里，
+            当用户点击展开时，我们把 summary 隐藏掉（或者保留），然后显示完整的列表。
+            
+            但为了交互更顺滑，推荐方案：
+            Summary 显示 "查看全部 X 篇"，默认列表放在外面？
+            不，为了让你说的那种“点一下展开”的效果，我们换一种思路：
+            
+            默认显示：预览列表 (3篇) + 一个“展开全部”的按钮
+            点击后：  显示完整列表
+        */
+        }
+
+        {/* 方案：利用 CSS 显隐控制 */}
+        <summary class="list-none cursor-pointer">
+            {/* 默认显示的 3 篇 (预览模式) */}
+            <ul class="space-y-1 block group-open:hidden">
+                {
+                    previewPosts.map((post) => {
+                        // 重新计算它在原始数组里的真实序号
+                        const originalIndex = seriesPosts.findIndex(
+                            (p) => p.slug === post.slug,
+                        );
+                        const isCurrent = post.slug === currentSlug;
+                        return (
+                            <li>
+                                <a
+                                    href={`/posts/${post.slug}`}
+                                    class={`flex items-center gap-3 p-2 rounded-lg text-sm transition-all ${isCurrent ? "bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 pointer-events-none" : "hover:bg-gray-200/50 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400"}`}
+                                >
+                                    <span
+                                        class={`font-mono text-xs w-4 text-right ${isCurrent ? "text-indigo-500 font-bold" : "text-gray-400"}`}
+                                    >
+                                        {String(originalIndex + 1).padStart(
+                                            2,
+                                            "0",
+                                        )}
+                                    </span>
+                                    <span
+                                        class={`truncate ${isCurrent ? "font-medium text-gray-900 dark:text-white" : ""}`}
+                                    >
+                                        {post.data.title}
+                                    </span>
+                                    {isCurrent && (
+                                        <span class="ml-auto text-[10px] text-indigo-500 font-bold">
+                                            当前
+                                        </span>
+                                    )}
+                                </a>
+                            </li>
+                        );
+                    })
+                }
+
+                {/* 如果总数超过3篇，显示“展开”按钮 */}
+                {
+                    seriesPosts.length > 3 && (
+                        <div class="mt-2 text-center pt-2 border-t border-gray-200/50 dark:border-gray-700/50">
+                            <span class="text-xs text-indigo-500 font-medium hover:text-indigo-600 transition-colors flex items-center justify-center gap-1">
+                                展开全部 {seriesPosts.length} 篇
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="12"
+                                    height="12"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <path d="m6 9 6 6 6-6" />
+                                </svg>
+                            </span>
+                        </div>
+                    )
+                }
+            </ul>
+
+            {
+                /* 这是一个隐藏的空 Summary，用于在展开后占位（虽然没啥用，为了符合语法） */
+            }
+            <span class="hidden group-open:inline"></span>
+        </summary>
+
+        {/* 展开后的完整列表 */}
+        <div class="mt-0">
+            <ul class="space-y-1">
+                {
+                    seriesPosts.map((post, index) => {
+                        const isCurrent = post.slug === currentSlug;
+                        return (
+                            <li>
+                                <a
+                                    href={`/posts/${post.slug}`}
+                                    class={`flex items-center gap-3 p-2 rounded-lg text-sm transition-all ${isCurrent ? "bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 pointer-events-none" : "hover:bg-gray-200/50 dark:hover:bg-white/10 text-gray-600 dark:text-gray-400"}`}
+                                >
+                                    <span
+                                        class={`font-mono text-xs w-4 text-right ${isCurrent ? "text-indigo-500 font-bold" : "text-gray-400"}`}
+                                    >
+                                        {String(index + 1).padStart(2, "0")}
+                                    </span>
+                                    <span
+                                        class={`truncate ${isCurrent ? "font-medium text-gray-900 dark:text-white" : ""}`}
+                                    >
+                                        {post.data.title}
+                                    </span>
+                                    {isCurrent && (
+                                        <span class="ml-auto text-[10px] text-indigo-500 font-bold">
+                                            当前
+                                        </span>
+                                    )}
+                                </a>
+                            </li>
+                        );
+                    })
+                }
+            </ul>
+
+            {/* 收起按钮 */}
+            <div
+                class="mt-2 text-center pt-2 border-t border-gray-200/50 dark:border-gray-700/50 cursor-pointer"
+                onclick="this.parentElement.parentElement.removeAttribute('open')"
+            >
+                <span
+                    class="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center justify-center gap-1"
+                >
+                    收起列表
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        ><path d="m18 15-6-6-6 6"></path></svg
+                    >
+                </span>
+            </div>
+        </div>
+    </details>
+</div>

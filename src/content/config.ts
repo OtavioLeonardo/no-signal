@@ -6,17 +6,25 @@ const posts = defineCollection({
     type: 'content', // 建议显式加上 type: 'content'
     schema: ({ image }: { image: any }) => z.object({
         title: z.string(),
+        series: z.string().optional(),
         layout: z.string().optional(),
         pubDate: z.coerce.date(),
         description: z.string().optional(),
         excerpt: z.string().optional(),
-        author: z.string().default('Gemini'),
+        author: z.string().default('Otavio'),
         isPinned: z.boolean().default(false),
         image: z.object({
             src: image().optional().or(z.string().optional().nullable()),
             alt: z.string().optional().nullable(),
         }).optional(),
         tags: z.array(z.string()).default([]),
+        updates: z.array(
+            z.object({
+                date: z.coerce.date(),
+                title: z.string(),
+                content: z.string(),
+            })
+        ).optional(),
     }),
 });
 

@@ -7,6 +7,9 @@
         "title": {
           "type": "string"
         },
+        "series": {
+          "type": "string"
+        },
         "layout": {
           "type": "string"
         },
@@ -34,7 +37,7 @@
         },
         "author": {
           "type": "string",
-          "default": "Gemini"
+          "default": "Otavio"
         },
         "isPinned": {
           "type": "boolean",
@@ -100,6 +103,42 @@
             "type": "string"
           },
           "default": []
+        },
+        "updates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  {
+                    "type": "integer",
+                    "format": "unix-time"
+                  }
+                ]
+              },
+              "title": {
+                "type": "string"
+              },
+              "content": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "date",
+              "title",
+              "content"
+            ],
+            "additionalProperties": false
+          }
         },
         "$schema": {
           "type": "string"
