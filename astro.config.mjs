@@ -34,7 +34,7 @@ export default defineConfig({
         }
     }), markdoc(), keystatic()],
 
-    output: 'server',
+    output: 'static',
 
     adapter: vercel({
         webAnalytics: {
