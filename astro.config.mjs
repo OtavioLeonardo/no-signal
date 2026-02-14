@@ -5,7 +5,6 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import pagefind from "astro-pagefind";
-import { remarkAlert } from 'remark-github-blockquote-alert';
 import markdoc from '@astrojs/markdoc';
 import keystatic from '@keystatic/astro';
 import { visualizer } from "rollup-plugin-visualizer";
