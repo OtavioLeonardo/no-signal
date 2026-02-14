@@ -40,10 +40,6 @@ export default defineConfig({
         webAnalytics: {
             enabled: true
         },
-        imagesConfig: {
-            domains: [],
-            sizes: []
-        }
     }),
 
     vite: {
