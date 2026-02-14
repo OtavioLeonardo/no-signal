@@ -35,7 +35,7 @@ export default defineConfig({
         }
     }), markdoc(), keystatic()],
 
-    output: 'hybrid',
+    output: 'static',
 
     adapter: vercel({
         webAnalytics: {
