@@ -87,7 +87,14 @@ const asideComponentBlock = {
 };
 
 export default config({
-    storage: { kind: 'local' },
+    storage: import.meta.env.PROD
+    ? {
+        kind: 'github',
+        repo: 'OtavioLeonardo/no-signal', 
+      }
+    : {
+        kind: 'local',
+      },
     ui: {
         brand: {
             name: 'no.signal',
