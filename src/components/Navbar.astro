@@ -1,87 +1,105 @@
 ---
 import Section from './Section.astro';
+
+const pathname = Astro.url.pathname;
+const navItems = [
+	{ label: 'Posts', href: '/posts' },
+	{ label: 'Diary', href: '/diary' },
+	{ label: 'Tags', href: '/tags' },
+	{ label: 'Tools', href: '/tools' },
+	{ label: 'Search', href: '/research' },
+];
+
+const isActive = (href: string) => {
+	if (href === '/') return pathname === '/';
+	return pathname === href || pathname.startsWith(`${href}/`);
+};
 ---
 
-<header class="sticky top-0 z-50 w-full border-b border-black/5 dark:border-white/10 bg-[#F5F5F7]/80 dark:bg-black/80 backdrop-blur-xl transition-all duration-300">
+<header class="sticky top-0 z-50 border-b border-[var(--border)] bg-[color:var(--bg-soft)]">
 	<Section>
-		<div class="flex h-16 items-center justify-between">
-			
-			{/* Logo 区域 */}
-			<div class="flex-shrink-0">
-				<a href="/" class="group flex items-center gap-3 transition-opacity hover:opacity-80">
-					
-					{/* Logo 图片 */}
-					<img 
-						src="/nobg.png" 
-						alt="No Signal Logo" 
-						class="h-9 w-auto md:h-10" 
-					/>
+		<div class="flex h-16 items-center justify-between gap-4">
+			<a href="/" class="group inline-flex min-w-0 items-center gap-3">
+				<img src="/nobg.png" alt="No Signal Logo" class="h-8 w-auto rounded-md ring-1 ring-black/10 dark:ring-white/10" />
+				<div class="min-w-0">
+					<p class="truncate text-sm font-semibold tracking-wide text-[color:var(--text)]">no.signal</p>
+					<p class="truncate text-[10px] uppercase tracking-[0.24em] text-[color:var(--text-muted)]">Field Notes Engine</p>
+				</div>
+			</a>
 
-					{/* 文字部分 */}
-					<div class="flex flex-col justify-center">
-						<span class="font-bold text-2xl md:text-3xl tracking-tighter leading-none text-gray-900 dark:text-white">
-							no<span class="text-orange-600">.</span>signal
-						</span>
-					</div>
-				</a>
-			</div>
-			
-			{/* Desktop Navigation */}
-			<div class="hidden sm:flex items-center gap-6">
+			<div class="hidden items-center gap-5 md:flex">
 				<nav>
-					<ul class="flex items-center gap-1 font-medium text-sm">
-						{['TAGS', 'POSTS', 'TOOLS', 'RESEARCH'].map((item) => (
-							<li>
-								<a 
-									href={item === 'POSTS' ? '/posts' : `/${item.toLowerCase()}`} 
-									class="px-3 py-2 rounded-lg text-gray-600 hover:text-black hover:bg-black/5 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/10 transition-all"
-								>
-									{item}
-								</a>
-							</li>
-						))}
+					<ul class="flex items-center gap-1 text-sm">
+						{
+							navItems.map((item) => (
+								<li>
+									<a
+										href={item.href}
+										class:list={[
+											'rounded-md px-3 py-2 font-medium',
+											isActive(item.href)
+												? 'bg-[color:var(--panel-strong)] text-[color:var(--text)]'
+												: 'text-[color:var(--text-muted)] hover:bg-[color:var(--panel)] hover:text-[color:var(--text)]',
+										]}
+									>
+										{item.label}
+									</a>
+								</li>
+							))
+						}
 					</ul>
 				</nav>
 
-				{/* Desktop Theme Switcher */}
-				<div class="pl-2 border-l border-gray-200 dark:border-gray-800">
+				<div class="h-5 w-px bg-[var(--border)]"></div>
+
+				<div class="inline-flex items-center gap-2">
 					<input type="checkbox" id="light-switch-desktop" class="light-switch sr-only" />
-					<label class="relative cursor-pointer flex items-center justify-center p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors" for="light-switch-desktop">
-						<svg class="dark:hidden w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-							<path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path>
-						</svg>
-						<svg class="hidden dark:block w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-							<path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-						</svg>
-						<span class="sr-only">Switch theme</span>
+					<label
+						for="light-switch-desktop"
+						class="inline-flex cursor-pointer items-center rounded-md border border-[var(--border)] bg-[color:var(--panel)] px-2.5 py-1.5 text-xs font-medium text-[color:var(--text-muted)] hover:text-[color:var(--text)]"
+					>
+						Theme
 					</label>
 				</div>
 			</div>
 
-			<button id="mobile-menu-button" class="sm:hidden p-2 rounded-lg text-gray-600 hover:bg-black/5 dark:text-gray-300" aria-label="Toggle mobile menu">
-				<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+			<button
+				id="mobile-menu-button"
+				class="inline-flex rounded-md border border-[var(--border)] bg-[color:var(--panel)] p-2 text-[color:var(--text)] md:hidden"
+				aria-label="Toggle mobile menu"
+				aria-expanded="false"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 					<path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
 				</svg>
 			</button>
 		</div>
 
-		<div
-			id="mobile-menu"
-			class="hidden sm:hidden mt-2 mb-4 overflow-hidden rounded-2xl border border-black/5 bg-white/90 backdrop-blur-xl shadow-lg dark:bg-stone-900/90 dark:border-white/10"
-		>
-			<nav class="flex flex-col p-2 text-sm font-medium">
-				{['TAGS', 'POSTS', 'TOOLS', 'RESEARCH'].map((item) => (
-					<a href={item === 'POSTS' ? '/posts' : `/${item.toLowerCase()}`} class="px-4 py-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
-						{item}
-					</a>
-				))}
-				
-				<div class="mt-2 pt-2 border-t border-gray-100 dark:border-white/5 px-4 py-3 flex items-center justify-between">
-					<span class="text-gray-500">Appearance</span>
+		<div id="mobile-menu" class="mb-4 hidden rounded-xl border border-[var(--border)] bg-[color:var(--panel)] p-2 md:hidden">
+			<nav class="flex flex-col gap-1 text-sm">
+				{
+					navItems.map((item) => (
+						<a
+							href={item.href}
+							class:list={[
+								'rounded-md px-3 py-2 font-medium',
+								isActive(item.href)
+									? 'bg-[color:var(--panel-strong)] text-[color:var(--text)]'
+									: 'text-[color:var(--text-muted)] hover:bg-[color:var(--panel-strong)] hover:text-[color:var(--text)]',
+							]}
+						>
+							{item.label}
+						</a>
+					))
+				}
+				<div class="mt-1 flex items-center justify-between border-t border-[var(--border)] px-3 pt-3">
+					<span class="text-xs uppercase tracking-[0.16em] text-[color:var(--text-muted)]">Theme</span>
 					<input type="checkbox" id="light-switch-mobile" class="light-switch sr-only" />
-					<label class="relative cursor-pointer p-2 rounded-full bg-gray-100 dark:bg-white/10" for="light-switch-mobile">
-						<svg class="dark:hidden w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
-						<svg class="hidden dark:block w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+					<label
+						for="light-switch-mobile"
+						class="cursor-pointer rounded-md border border-[var(--border)] bg-[color:var(--panel-strong)] px-2.5 py-1.5 text-xs text-[color:var(--text-muted)]"
+					>
+						Dark
 					</label>
 				</div>
 			</nav>
@@ -90,61 +108,49 @@ import Section from './Section.astro';
 </header>
 
 <script>
-    function initTheme() {
-        const lightSwitches = document.querySelectorAll('.light-switch');
-        const isDarkTheme = localStorage.getItem('theme') === 'dark';
+	const initTheme = () => {
+		const lightSwitches = Array.from(document.querySelectorAll('.light-switch'));
+		const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+		const saved = localStorage.getItem('theme');
+		const shouldUseDark = saved ? saved === 'dark' : prefersDark;
 
-        if (isDarkTheme) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
+		document.documentElement.classList.toggle('dark', shouldUseDark);
+		lightSwitches.forEach((input) => {
+			if (input instanceof HTMLInputElement) {
+				input.checked = shouldUseDark;
+				if (input.dataset.bound === '1') return;
+				input.dataset.bound = '1';
+				input.addEventListener('change', () => {
+					const enabled = input.checked;
+					document.documentElement.classList.toggle('dark', enabled);
+					localStorage.setItem('theme', enabled ? 'dark' : 'light');
+					document.querySelectorAll('.light-switch').forEach((syncInput) => {
+						if (syncInput instanceof HTMLInputElement) {
+							syncInput.checked = enabled;
+						}
+					});
+				});
+			}
+		});
+	};
 
-        lightSwitches.forEach((lightSwitch) => {
-            (lightSwitch as HTMLInputElement).checked = isDarkTheme;
-        });
+	const initMobileMenu = () => {
+		const menu = document.getElementById('mobile-menu');
+		const button = document.getElementById('mobile-menu-button');
+		if (!(menu instanceof HTMLElement) || !(button instanceof HTMLButtonElement) || button.dataset.bound === '1') {
+			return;
+		}
 
-        lightSwitches.forEach((lightSwitch) => {
-            lightSwitch.addEventListener('change', () => {
-                const isChecked = (lightSwitch as HTMLInputElement).checked;
-                
-                if (isChecked) {
-                    document.documentElement.classList.add('dark');
-                    localStorage.setItem('theme', 'dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                    localStorage.setItem('theme', 'light');
-                }
+		button.dataset.bound = '1';
+		button.addEventListener('click', () => {
+			const isExpanded = button.getAttribute('aria-expanded') === 'true';
+			button.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
+			menu.classList.toggle('hidden');
+		});
+	};
 
-                document.querySelectorAll('.light-switch').forEach((s) => {
-                    (s as HTMLInputElement).checked = isChecked;
-                });
-            });
-        });
-    }
-
-    document.addEventListener('astro:page-load', initTheme);
-
-    document.addEventListener('astro:page-load', () => {
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const mobileMenu = document.getElementById('mobile-menu');
-
-        if (mobileMenuButton && mobileMenu) {
-            mobileMenu.classList.add('hidden');
-            mobileMenuButton.setAttribute('aria-expanded', 'false');
-            mobileMenuButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>`;
-
-            mobileMenuButton.addEventListener('click', () => {
-                const expanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
-                mobileMenuButton.setAttribute('aria-expanded', (!expanded).toString());
-                mobileMenu.classList.toggle('hidden');
-
-                if (!expanded) {
-                    mobileMenuButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>`;
-                } else {
-                    mobileMenuButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>`;
-                }
-            });
-        }
-    });
+	document.addEventListener('astro:page-load', () => {
+		initTheme();
+		initMobileMenu();
+	});
 </script>

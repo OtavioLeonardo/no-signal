@@ -1,0 +1,237 @@
+---
+const passHash = import.meta.env.PUBLIC_DIARY_PASSCODE_SHA256 ?? '';
+---
+
+<div
+	id="diary-privacy-gate"
+	data-pass-hash={passHash}
+	data-session-key="diary.lock.session.v1"
+	data-local-hash-key="diary.lock.local.hash.v1"
+	class="hidden fixed inset-0 z-[100] bg-[#f5f5f7]/95 px-4 py-6 backdrop-blur-xl dark:bg-black/95"
+>
+	<div class="mx-auto flex min-h-full w-full max-w-md items-center justify-center">
+		<div class="w-full rounded-3xl border border-black/10 bg-white p-7 shadow-xl dark:border-white/10 dark:bg-[#161618]">
+			<div class="mb-5">
+				<p class="text-xs uppercase tracking-[0.2em] text-gray-400">
+					Private Diary
+				</p>
+				<h2 id="diary-gate-title" class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
+					输入口令
+				</h2>
+				<p id="diary-gate-hint" class="mt-2 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+					仅用于前端隐私保护。输入后可访问你的日记页面。
+				</p>
+			</div>
+
+			<form id="diary-gate-form" class="space-y-3">
+				<label class="block">
+					<span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
+						口令
+					</span>
+					<input
+						id="diary-gate-password"
+						type="password"
+						autocomplete="current-password"
+						required
+						class="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/5 dark:text-gray-100 dark:focus:border-blue-400 dark:focus:bg-white/10"
+						placeholder="请输入口令"
+					/>
+				</label>
+
+				<label id="diary-gate-confirm-wrap" class="hidden block">
+					<span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-200">
+						确认口令
+					</span>
+					<input
+						id="diary-gate-confirm"
+						type="password"
+						autocomplete="new-password"
+						class="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/5 dark:text-gray-100 dark:focus:border-blue-400 dark:focus:bg-white/10"
+						placeholder="再次输入口令"
+					/>
+				</label>
+
+				<p id="diary-gate-error" class="hidden rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600 dark:border-red-400/20 dark:bg-red-500/10 dark:text-red-300"></p>
+
+				<button
+					type="submit"
+					class="inline-flex w-full items-center justify-center rounded-xl bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-black dark:bg-white dark:text-black dark:hover:bg-gray-200"
+				>
+					解锁日记
+				</button>
+			</form>
+
+			<p class="mt-4 text-xs leading-relaxed text-gray-400">
+				提示：若未配置 `PUBLIC_DIARY_PASSCODE_SHA256`，将使用当前浏览器本地口令模式。
+			</p>
+		</div>
+	</div>
+</div>
+
+<script is:inline>
+	const digestText = async (text) => {
+		const bytes = new TextEncoder().encode(text);
+		const hashBuffer = await crypto.subtle.digest('SHA-256', bytes);
+		return Array.from(new Uint8Array(hashBuffer))
+			.map((byte) => byte.toString(16).padStart(2, '0'))
+			.join('');
+	};
+
+	const initDiaryPrivacyGate = () => {
+		const gate = document.getElementById('diary-privacy-gate');
+		if (!gate || gate.dataset.bound === '1') return;
+		gate.dataset.bound = '1';
+
+		const expectedHash = (gate.dataset.passHash || '').trim().toLowerCase();
+		const sessionKey = gate.dataset.sessionKey || 'diary.lock.session.v1';
+		const localHashKey = gate.dataset.localHashKey || 'diary.lock.local.hash.v1';
+
+		const protectedBlocks = Array.from(document.querySelectorAll('[data-diary-protected]'));
+		const lockButtons = Array.from(document.querySelectorAll('[data-diary-lock]'));
+
+		const titleEl = document.getElementById('diary-gate-title');
+		const hintEl = document.getElementById('diary-gate-hint');
+		const form = document.getElementById('diary-gate-form');
+		const passwordInput = document.getElementById('diary-gate-password');
+		const confirmWrap = document.getElementById('diary-gate-confirm-wrap');
+		const confirmInput = document.getElementById('diary-gate-confirm');
+		const errorEl = document.getElementById('diary-gate-error');
+
+		if (
+			!titleEl ||
+			!hintEl ||
+			!(form instanceof HTMLFormElement) ||
+			!(passwordInput instanceof HTMLInputElement) ||
+			!(confirmWrap instanceof HTMLElement) ||
+			!(confirmInput instanceof HTMLInputElement) ||
+			!(errorEl instanceof HTMLElement)
+		) {
+			return;
+		}
+
+		let gateMode = 'verify';
+
+		const setError = (message) => {
+			if (!message) {
+				errorEl.classList.add('hidden');
+				errorEl.textContent = '';
+				return;
+			}
+			errorEl.classList.remove('hidden');
+			errorEl.textContent = message;
+		};
+
+		const setProtectedVisible = (isVisible) => {
+			protectedBlocks.forEach((element) => {
+				element.classList.toggle('hidden', !isVisible);
+			});
+
+			lockButtons.forEach((button) => {
+				button.classList.toggle('hidden', !isVisible);
+			});
+		};
+
+		const showGate = () => {
+			const hasLocalHash = Boolean(localStorage.getItem(localHashKey));
+			gateMode = expectedHash ? 'verify' : hasLocalHash ? 'verify' : 'setup';
+
+			confirmWrap.classList.toggle('hidden', gateMode !== 'setup');
+			titleEl.textContent = gateMode === 'setup' ? '创建本地口令' : '输入口令';
+			hintEl.textContent =
+				gateMode === 'setup'
+					? '当前未配置环境变量口令，请先在本设备创建一个本地口令。'
+					: expectedHash
+						? '使用站点口令解锁。'
+						: '使用你在本设备创建的口令解锁。';
+
+			passwordInput.value = '';
+			confirmInput.value = '';
+			setError('');
+			gate.classList.remove('hidden');
+			passwordInput.focus();
+		};
+
+		const hideGate = () => {
+			gate.classList.add('hidden');
+			setError('');
+			passwordInput.value = '';
+			confirmInput.value = '';
+		};
+
+		const unlock = () => {
+			sessionStorage.setItem(sessionKey, '1');
+			setProtectedVisible(true);
+			hideGate();
+		};
+
+		const lock = () => {
+			sessionStorage.removeItem(sessionKey);
+			setProtectedVisible(false);
+			showGate();
+		};
+
+		const bindLockButtons = () => {
+			lockButtons.forEach((button) => {
+				if (button.dataset.lockBound === '1') return;
+				button.dataset.lockBound = '1';
+				button.addEventListener('click', () => {
+					lock();
+				});
+			});
+		};
+
+		form.addEventListener('submit', async (event) => {
+			event.preventDefault();
+			const password = passwordInput.value.trim();
+			const confirmPassword = confirmInput.value.trim();
+
+			if (password.length < 4) {
+				setError('口令至少 4 个字符。');
+				return;
+			}
+
+			const passwordHash = await digestText(password);
+
+			if (expectedHash) {
+				if (passwordHash !== expectedHash) {
+					setError('口令错误，请重试。');
+					return;
+				}
+				unlock();
+				return;
+			}
+
+			const existingLocalHash = localStorage.getItem(localHashKey);
+			if (!existingLocalHash) {
+				if (confirmPassword !== password) {
+					setError('两次输入不一致，请重新输入。');
+					return;
+				}
+				localStorage.setItem(localHashKey, passwordHash);
+				unlock();
+				return;
+			}
+
+			if (passwordHash !== existingLocalHash) {
+				setError('本地口令错误，请重试。');
+				return;
+			}
+
+			unlock();
+		});
+
+		bindLockButtons();
+
+		const isUnlocked = sessionStorage.getItem(sessionKey) === '1';
+		if (isUnlocked) {
+			setProtectedVisible(true);
+			hideGate();
+			return;
+		}
+
+		setProtectedVisible(false);
+		showGate();
+	};
+
+	document.addEventListener('astro:page-load', initDiaryPrivacyGate);
+</script>

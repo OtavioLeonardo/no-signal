@@ -1,85 +1,301 @@
 ---
 import Base from '@/layouts/Base.astro';
 import Section from '@/components/Section.astro';
+import DiaryPrivacyGate from '@/components/DiaryPrivacyGate.astro';
 
-// 接收 frontmatter 数据
-const { frontmatter } = Astro.props;
+interface Neighbor {
+	slug: string;
+	title: string;
+	pubDate: Date | string;
+}
 
-// 格式化日期：例如 "2026年1月27日 星期二"
-const formattedDate = new Date(frontmatter.pubDate).toLocaleDateString('zh-CN', {
+interface Props {
+	frontmatter: {
+		title: string;
+		pubDate: Date | string;
+		description?: string;
+		excerpt?: string;
+		image?: {
+			src?: string;
+			alt?: string;
+		};
+	};
+	slug?: string;
+	neighbors?: {
+		newer?: Neighbor;
+		older?: Neighbor;
+	};
+}
+
+const { frontmatter, slug = '', neighbors = {} } = Astro.props as Props;
+const { newer, older } = neighbors;
+
+const dateObj = new Date(frontmatter.pubDate);
+const formattedDate = dateObj.toLocaleDateString('zh-CN', {
 	year: 'numeric',
 	month: 'long',
 	day: 'numeric',
-	weekday: 'long'
+	weekday: 'long',
 });
+const machineDate = dateObj.toISOString();
 ---
 
-<Base head={{ title: frontmatter.title, description: frontmatter.description }}>
+<Base
+	head={{
+		title: frontmatter.title,
+		description: frontmatter.description || '私人日记',
+	}}
+>
+	<DiaryPrivacyGate />
+	<div id="diary-read-progress" class="fixed left-0 top-0 z-[70] h-[2px] w-0 bg-gradient-to-r from-orange-500 to-blue-500 transition-[width] duration-150"></div>
+
 	<Section>
-		{/* 顶部导航 */}
-		<div class="py-6">
-			<a 
-				href="/diary" 
-				class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors"
-			>
-				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left"><path d="m15 18-6-6 6-6"/></svg>
-				<span>Back to Diary</span>
-			</a>
-		</div>
+		<div class="hidden py-8 md:py-12" data-diary-protected>
+			<div class="mx-auto w-full max-w-5xl" data-diary-shell data-diary-slug={slug} data-diary-title={frontmatter.title} data-diary-date={machineDate}>
+				<div class="mb-6 flex flex-wrap items-center justify-between gap-2">
+					<a
+						href="/diary"
+						class="inline-flex items-center gap-2 rounded-lg border border-black/10 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:bg-[#141416] dark:text-gray-200 dark:hover:bg-white/10"
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<path d="m15 18-6-6 6-6"></path>
+						</svg>
+						<span>返回 Diary Hub</span>
+					</a>
 
-		{/* Apple Card 风格容器：白色背景，阴影，圆角 */}
-		<article class="apple-card mx-auto w-full max-w-2xl p-8 md:p-12">
-			
-			{/* 1. 日记头部信息 */}
-			<header class="mb-10 text-center">
-				<time class="block text-gray-400 text-sm font-medium mb-3 uppercase tracking-wide">
-					{formattedDate}
-				</time>
-				<h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white leading-tight tracking-tight">
-					{frontmatter.title}
-				</h1>
-			</header>
-
-			{/* 2. 摘要 - 优化为柔和的背景块 */}
-			{frontmatter.excerpt && (
-				<div class="mb-10 rounded-2xl bg-gray-50 dark:bg-white/5 p-6 text-center">
-					<p class="text-base italic text-gray-600 dark:text-gray-300">
-						{frontmatter.excerpt}
-					</p>
+					<div class="flex items-center gap-2">
+						<button
+							id="diary-focus-toggle"
+							type="button"
+							class="rounded-lg border border-black/10 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:bg-[#141416] dark:text-gray-200 dark:hover:bg-white/10"
+						>
+							专注模式
+						</button>
+						<button
+							id="diary-favorite-toggle"
+							type="button"
+							class="rounded-lg border border-black/10 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:bg-[#141416] dark:text-gray-200 dark:hover:bg-white/10"
+						>
+							收藏
+						</button>
+						<button
+							type="button"
+							data-diary-lock
+							class="hidden rounded-lg border border-black/10 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:bg-[#141416] dark:text-gray-200 dark:hover:bg-white/10"
+						>
+							锁定
+						</button>
+					</div>
 				</div>
-			)}
 
-			{/* 3. 配图 */}
-			{frontmatter.image?.src && (
-				<div class="mb-10">
-					<img 
-						src={frontmatter.image.src} 
-						alt={frontmatter.image.alt || frontmatter.title} 
-						class="w-full h-auto rounded-xl shadow-sm"
-					/>
-					{frontmatter.image.alt && (
-						<p class="mt-3 text-center text-xs text-gray-400">
-							▲ {frontmatter.image.alt}
-						</p>
+				<article class="mx-auto w-full max-w-3xl rounded-3xl border border-black/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[#141416] md:p-10">
+					<header class="mb-8 border-b border-gray-100 pb-6 dark:border-white/10">
+						<p class="text-xs uppercase tracking-[0.2em] text-gray-400">Diary Entry</p>
+						<h1 class="mt-3 text-3xl font-bold tracking-tight text-gray-900 dark:text-white md:text-4xl">
+							{frontmatter.title}
+						</h1>
+						<time class="mt-3 block text-sm text-gray-500 dark:text-gray-400">{formattedDate}</time>
+
+						<div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
+							<span class="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-white/10 dark:text-gray-300">
+								字数 <span id="diary-word-count">--</span>
+							</span>
+							<span class="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-white/10 dark:text-gray-300">
+								阅读 <span id="diary-read-minutes">--</span> 分钟
+							</span>
+							<span class="rounded-full bg-gray-100 px-2.5 py-1 text-gray-600 dark:bg-white/10 dark:text-gray-300">
+								状态 <span id="diary-read-state">阅读中</span>
+							</span>
+						</div>
+					</header>
+
+					{frontmatter.description && (
+						<div class="mb-8 rounded-2xl border border-orange-100 bg-orange-50 p-4 text-sm leading-relaxed text-orange-900 dark:border-orange-400/20 dark:bg-orange-500/10 dark:text-orange-200">
+							{frontmatter.description}
+						</div>
 					)}
+
+					{frontmatter.image?.src && (
+						<div class="mb-8">
+							<img src={frontmatter.image.src} alt={frontmatter.image.alt || frontmatter.title} class="h-auto w-full rounded-2xl" />
+						</div>
+					)}
+
+					<div
+						id="diary-content"
+						class="prose prose-lg max-w-none prose-headings:tracking-tight prose-a:no-underline hover:prose-a:underline dark:prose-invert"
+					>
+						<slot />
+					</div>
+				</article>
+
+				<div class="mx-auto mt-6 grid w-full max-w-3xl gap-3 md:grid-cols-2">
+					{
+						newer ? (
+							<a
+								href={`/diary/${newer.slug}`}
+								class="rounded-2xl border border-black/10 bg-white p-4 transition hover:bg-gray-50 dark:border-white/10 dark:bg-[#141416] dark:hover:bg-white/10"
+							>
+								<p class="text-xs uppercase tracking-[0.2em] text-gray-400">更新一篇</p>
+								<p class="mt-2 line-clamp-1 text-sm font-semibold text-gray-900 dark:text-white">{newer.title}</p>
+								<p class="mt-1 text-xs text-gray-400">
+									{new Date(newer.pubDate).toLocaleDateString('zh-CN')}
+								</p>
+							</a>
+						) : (
+							<div class="rounded-2xl border border-dashed border-gray-200 p-4 text-sm text-gray-400 dark:border-white/10">
+								已经是最新一篇了
+							</div>
+						)
+					}
+					{
+						older ? (
+							<a
+								href={`/diary/${older.slug}`}
+								class="rounded-2xl border border-black/10 bg-white p-4 transition hover:bg-gray-50 dark:border-white/10 dark:bg-[#141416] dark:hover:bg-white/10"
+							>
+								<p class="text-xs uppercase tracking-[0.2em] text-gray-400">更早一篇</p>
+								<p class="mt-2 line-clamp-1 text-sm font-semibold text-gray-900 dark:text-white">{older.title}</p>
+								<p class="mt-1 text-xs text-gray-400">
+									{new Date(older.pubDate).toLocaleDateString('zh-CN')}
+								</p>
+							</a>
+						) : (
+							<div class="rounded-2xl border border-dashed border-gray-200 p-4 text-sm text-gray-400 dark:border-white/10">
+								已经是最早一篇了
+							</div>
+						)
+					}
 				</div>
-			)}
-
-			{/* 4. 正文内容 */}
-			{/* 移除 prose-stone，使用默认的 prose (gray)，在 global.css 中已微调 */}
-			<div class="prose prose-lg dark:prose-invert max-w-none 
-				prose-headings:font-bold prose-headings:tracking-tight
-				prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
-				prose-img:rounded-xl prose-img:shadow-sm">
-				
-				<slot />
-				
 			</div>
-
-			{/* 底部装饰 */}
-			<div class="mt-16 flex justify-center opacity-30">
-				<div class="w-16 h-1 rounded-full bg-gray-300 dark:bg-gray-700"></div>
-			</div>
-		</article>
+		</div>
 	</Section>
+
+	<style is:global>
+		html.diary-focus-mode header,
+		html.diary-focus-mode footer {
+			opacity: 0;
+			pointer-events: none;
+			transform: translateY(-120%);
+			transition: all 280ms ease;
+		}
+
+		html.diary-focus-mode [data-diary-shell] {
+			max-width: 70ch;
+		}
+	</style>
+
+	<script is:inline>
+		const initDiaryEntry = () => {
+			const shell = document.querySelector('[data-diary-shell]');
+			if (!(shell instanceof HTMLElement) || shell.dataset.bound === '1') return;
+			shell.dataset.bound = '1';
+
+			const content = document.getElementById('diary-content');
+			const progress = document.getElementById('diary-read-progress');
+			const wordCountEl = document.getElementById('diary-word-count');
+			const readMinutesEl = document.getElementById('diary-read-minutes');
+			const readStateEl = document.getElementById('diary-read-state');
+			const focusButton = document.getElementById('diary-focus-toggle');
+			const favoriteButton = document.getElementById('diary-favorite-toggle');
+
+			if (
+				!(content instanceof HTMLElement) ||
+				!(progress instanceof HTMLElement) ||
+				!(wordCountEl instanceof HTMLElement) ||
+				!(readMinutesEl instanceof HTMLElement) ||
+				!(readStateEl instanceof HTMLElement) ||
+				!(focusButton instanceof HTMLButtonElement) ||
+				!(favoriteButton instanceof HTMLButtonElement)
+			) {
+				return;
+			}
+
+			document.documentElement.classList.remove('diary-focus-mode');
+
+			const FAVORITE_KEY = 'diary.favorite.v1';
+			const RECENT_KEY = 'diary.recent.v1';
+			const slug = shell.dataset.diarySlug || '';
+			const title = shell.dataset.diaryTitle || slug;
+			const date = shell.dataset.diaryDate
+				? new Date(shell.dataset.diaryDate).toLocaleDateString('zh-CN')
+				: '';
+
+			const safeReadArray = (key) => {
+				try {
+					const value = JSON.parse(localStorage.getItem(key) || '[]');
+					return Array.isArray(value) ? value : [];
+				} catch {
+					return [];
+				}
+			};
+
+			const getFavorites = () => new Set(safeReadArray(FAVORITE_KEY).filter((item) => typeof item === 'string'));
+			const saveFavorites = (favorites) => localStorage.setItem(FAVORITE_KEY, JSON.stringify([...favorites]));
+
+			const updateFavoriteButton = () => {
+				const favorites = getFavorites();
+				const isFavorite = favorites.has(slug);
+				favoriteButton.textContent = isFavorite ? '已收藏' : '收藏';
+				favoriteButton.classList.toggle('border-amber-300', isFavorite);
+				favoriteButton.classList.toggle('text-amber-600', isFavorite);
+				favoriteButton.classList.toggle('dark:text-amber-300', isFavorite);
+			};
+
+			favoriteButton.addEventListener('click', () => {
+				if (!slug) return;
+				const favorites = getFavorites();
+				if (favorites.has(slug)) {
+					favorites.delete(slug);
+				} else {
+					favorites.add(slug);
+				}
+				saveFavorites(favorites);
+				updateFavoriteButton();
+			});
+
+			const text = (content.textContent || '').replace(/\s+/g, '');
+			const words = text.length;
+			const readMinutes = Math.max(1, Math.ceil(words / 280));
+			wordCountEl.textContent = `${words}`;
+			readMinutesEl.textContent = `${readMinutes}`;
+
+			const updateProgress = () => {
+				const doc = document.documentElement;
+				const scrollTop = doc.scrollTop || document.body.scrollTop;
+				const max = doc.scrollHeight - doc.clientHeight;
+				const ratio = max > 0 ? Math.min(1, Math.max(0, scrollTop / max)) : 0;
+				progress.style.width = `${ratio * 100}%`;
+
+				if (ratio > 0.95) {
+					readStateEl.textContent = '已读完';
+				} else if (ratio > 0.35) {
+					readStateEl.textContent = '沉浸阅读';
+				} else {
+					readStateEl.textContent = '阅读中';
+				}
+			};
+
+			updateProgress();
+			window.addEventListener('scroll', updateProgress, { passive: true });
+			window.addEventListener('resize', updateProgress);
+
+			focusButton.addEventListener('click', () => {
+				const focused = document.documentElement.classList.toggle('diary-focus-mode');
+				focusButton.textContent = focused ? '退出专注' : '专注模式';
+			});
+
+			document.addEventListener('astro:before-swap', () => {
+				document.documentElement.classList.remove('diary-focus-mode');
+			});
+
+			const recent = safeReadArray(RECENT_KEY).filter((item) => item && typeof item.slug === 'string');
+			const updatedRecent = [{ slug, title, date }, ...recent.filter((item) => item.slug !== slug)].slice(0, 8);
+			localStorage.setItem(RECENT_KEY, JSON.stringify(updatedRecent));
+
+			updateFavoriteButton();
+		};
+
+		document.addEventListener('astro:page-load', initDiaryEntry);
+	</script>
 </Base>

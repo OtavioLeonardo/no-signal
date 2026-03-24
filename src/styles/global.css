@@ -4,21 +4,212 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* --- 1. Base Layer: 苹果风格全局背景 --- */
+:root {
+    --bg: oklch(0.962 0.008 90);
+    --bg-soft: oklch(0.975 0.006 90);
+    --panel: oklch(0.97 0.006 90);
+    --panel-strong: oklch(0.945 0.006 90);
+    --text: oklch(0.28 0.012 80);
+    --text-muted: oklch(0.5 0.01 80);
+    --border: oklch(0.82 0.008 90);
+    --accent: oklch(0.54 0.085 35);
+    --accent-2: oklch(0.52 0.06 230);
+    --shadow: none;
+    --selection-bg: oklch(0.75 0.09 48);
+    --selection-fg: oklch(0.17 0.02 45);
+}
+
+html.dark {
+    --bg: oklch(0.18 0.004 250);
+    --bg-soft: oklch(0.21 0.004 250);
+    --panel: oklch(0.23 0.004 250);
+    --panel-strong: oklch(0.27 0.004 250);
+    --text: oklch(0.92 0.01 80);
+    --text-muted: oklch(0.73 0.008 250);
+    --border: oklch(0.36 0.005 250);
+    --accent: oklch(0.72 0.095 35);
+    --accent-2: oklch(0.72 0.055 230);
+    --shadow: none;
+    --selection-bg: oklch(0.48 0.09 48);
+    --selection-fg: oklch(0.95 0.01 80);
+}
+
 @layer base {
+    html,
     body {
-        @apply bg-[#F5F5F7] text-[#1D1D1F] antialiased;
-        /* ✅ 新增：防止横向溢出，但使用 clip 以保护 sticky 上下文 */
-        overflow-x: clip;
+        min-height: 100%;
     }
 
-    .dark body {
-        /* 深色模式：深空灰 (macOS 风格)，比纯黑更有质感 */
-        @apply bg-[#000000] text-[#F5F5F7];
+    body {
+        color: var(--text);
+        background: var(--bg);
+        overflow-x: clip;
+        font-family: 'IBM Plex Sans SC', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+
+    .site-ambient {
+        display: none;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        font-family: 'Noto Serif SC', 'Songti SC', serif;
+        letter-spacing: -0.02em;
+        color: var(--text);
+    }
+
+    a {
+        transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
     }
 }
 
-/* --- 2. Utilities Layer: 你的自定义代码高亮 (完整保留) --- */
+@layer components {
+    .panel {
+        border: 1px solid var(--border);
+        background: var(--panel);
+        border-radius: 0.75rem;
+        box-shadow: var(--shadow);
+    }
+
+    .panel-soft {
+        border: 1px solid var(--border);
+        background: var(--panel-strong);
+        border-radius: 0.625rem;
+    }
+
+    .kicker {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.22em;
+        color: var(--text-muted);
+    }
+
+    .section-rule {
+        position: relative;
+    }
+
+    .section-rule::after {
+        content: '';
+        display: block;
+        width: 100%;
+        margin-top: 1.1rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .apple-card {
+        border: 1px solid var(--border);
+        background: var(--panel);
+        border-radius: 0.75rem;
+        box-shadow: var(--shadow);
+    }
+
+    .markdown-alert {
+        margin-bottom: 1.3rem;
+        border-radius: 0.625rem;
+        border: 1px solid;
+        padding: 0.95rem 1rem;
+        line-height: 1.65;
+        --alert-bg: var(--panel-strong);
+        --alert-border: var(--border);
+        --alert-text: var(--text);
+        --alert-icon-bg: var(--panel);
+        background: var(--alert-bg);
+        border-color: var(--alert-border);
+        color: var(--alert-text);
+    }
+
+    .markdown-alert-title {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin-bottom: 0.45rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+    }
+
+    .markdown-alert-title > svg {
+        display: none;
+    }
+
+    .markdown-alert-title::before {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.2rem;
+        height: 1.2rem;
+        border-radius: 0.25rem;
+        background: var(--alert-icon-bg);
+        font-size: 0.7rem;
+        content: 'i';
+    }
+
+    .markdown-alert-note {
+        --alert-bg: color-mix(in oklch, var(--accent-2) 12%, var(--bg-soft));
+        --alert-border: color-mix(in oklch, var(--accent-2) 34%, var(--border));
+        --alert-icon-bg: color-mix(in oklch, var(--accent-2) 20%, white);
+    }
+
+    .markdown-alert-note .markdown-alert-title::before {
+        content: 'N';
+    }
+
+    .markdown-alert-tip {
+        --alert-bg: oklch(0.95 0.03 150 / 0.75);
+        --alert-border: oklch(0.76 0.08 150 / 0.8);
+        --alert-icon-bg: oklch(0.9 0.08 150 / 0.4);
+    }
+
+    .dark .markdown-alert-tip {
+        --alert-bg: oklch(0.3 0.06 150 / 0.55);
+        --alert-border: oklch(0.62 0.08 150 / 0.6);
+    }
+
+    .markdown-alert-tip .markdown-alert-title::before {
+        content: 'T';
+    }
+
+    .markdown-alert-warning {
+        --alert-bg: color-mix(in oklch, var(--accent) 16%, var(--bg-soft));
+        --alert-border: color-mix(in oklch, var(--accent) 36%, var(--border));
+        --alert-icon-bg: color-mix(in oklch, var(--accent) 22%, white);
+    }
+
+    .markdown-alert-warning .markdown-alert-title::before {
+        content: '!';
+    }
+
+    .markdown-alert-caution,
+    .markdown-alert-danger,
+    .markdown-alert-important {
+        --alert-bg: oklch(0.93 0.04 25 / 0.75);
+        --alert-border: oklch(0.71 0.11 25 / 0.8);
+        --alert-icon-bg: oklch(0.9 0.08 25 / 0.6);
+    }
+
+    .dark .markdown-alert-caution,
+    .dark .markdown-alert-danger,
+    .dark .markdown-alert-important {
+        --alert-bg: oklch(0.3 0.07 25 / 0.55);
+        --alert-border: oklch(0.66 0.1 25 / 0.6);
+    }
+
+    .markdown-alert-caution .markdown-alert-title::before,
+    .markdown-alert-danger .markdown-alert-title::before,
+    .markdown-alert-important .markdown-alert-title::before {
+        content: 'x';
+    }
+}
+
 @layer utilities {
     .content pre {
         @apply p-0;
@@ -32,213 +223,47 @@
         @apply p-0;
     }
 
-    .content pre>code span[data-line] {
+    .content pre > code span[data-line] {
         @apply border-l-8 border-transparent px-2;
     }
 
-    .content pre>code span:first-of-type {
+    .content pre > code span:first-of-type {
         @apply rounded-t-lg pt-2;
     }
 
-    .content pre>code span:last-of-type {
+    .content pre > code span:last-of-type {
         @apply rounded-b-lg pb-2;
     }
 
-    .content pre>code .highlighted {
-        @apply border-l-8 !border-gray-300/60 bg-gray-200/5;
+    .content pre > code .highlighted {
+        @apply border-l-8 bg-gray-200/20;
+        border-left-color: color-mix(in oklch, var(--accent-2) 60%, transparent);
     }
 
-    .content pre>code[data-line-numbers] {
+    .content pre > code[data-line-numbers] {
         counter-reset: line;
     }
 
-    .content pre>code[data-line-numbers]>span[data-line]::before {
+    .content pre > code[data-line-numbers] > span[data-line]::before {
         counter-increment: line;
         content: counter(line);
-        @apply mr-8 inline-block w-4 text-left text-[#7ca2dfad];
+        margin-right: 1.35rem;
+        display: inline-block;
+        width: 1.2rem;
+        text-align: right;
+        color: color-mix(in oklch, var(--text-muted) 70%, transparent);
     }
 
-    .content pre>code>span[data-line]::before {
+    .content pre > code > span[data-line]::before {
         content: '';
-        @apply inline-block w-4 text-right;
+        display: inline-block;
+        width: 1.2rem;
     }
 
-    .content pre>code[data-line-numbers-max-digits='2']>span[data-line]::before {
-        @apply w-8;
-    }
-
-    .content code[data-line-numbers-max-digits='3']>span[data-line]::before {
-        @apply w-12;
-    }
-}
-
-/* --- 3. Components Layer: 组件样式 --- */
-@layer components {
-
-    /* --- 通用 Apple Card 组件 (推荐用于包裹你的文章主体) --- */
-    .apple-card {
-        @apply bg-white rounded-2xl border border-black/5 shadow-sm transition-all duration-300;
-    }
-
-    .dark .apple-card {
-        @apply bg-[#1C1C1E] border-white/10 shadow-none;
-    }
-
-    /* --- iOS 风格 Markdown Alerts / Callouts --- */
-    /* 设计语言变化：
-       - 移除左侧粗边框，改为四周细边框
-       - 增加大圆角 (rounded-2xl)
-       - 增加背景透明度与毛玻璃感 (backdrop-blur)
-       - 图标改为圆形背景包裹
-    */
-
-    .markdown-alert {
-        @apply mb-6 rounded-2xl border p-4 text-[15px] leading-relaxed relative overflow-hidden transition-all duration-200 backdrop-blur-md;
-
-        /* 默认变量兜底 */
-        --alert-bg: theme('colors.gray.50');
-        --alert-border: theme('colors.gray.200');
-        --alert-text: theme('colors.gray.800');
-        --alert-icon-bg: theme('colors.gray.200');
-
-        background-color: var(--alert-bg);
-        border-color: var(--alert-border);
-        color: var(--alert-text);
-    }
-
-    /* 标题样式：全大写、字号小但加粗，类似 iOS 设置里的分组标题 */
-    .markdown-alert-title {
-        @apply flex items-center font-bold mb-3 text-xs uppercase tracking-wider opacity-80;
-    }
-
-    .markdown-alert-title>svg {
-        @apply hidden;
-    }
-
-    .markdown-alert p {
-        @apply text-inherit opacity-95 m-0;
-    }
-
-    .markdown-alert>*:last-child {
-        @apply mb-0;
-    }
-
-    /* Emoji 图标容器：圆形背景，看起来像 App Icon */
-    .markdown-alert-title::before {
-        @apply inline-flex items-center justify-center w-6 h-6 mr-2 text-sm rounded-full bg-[var(--alert-icon-bg)] not-italic shadow-sm;
-        font-family: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
-    }
-
-    /* --- 类型定义 (配色调整为更柔和的高级色) --- */
-
-    /* 1. Important (紫色 - 类似 iOS 专注模式) 💬 */
-    .markdown-alert-important {
-        --alert-bg: rgba(245, 243, 255, 0.6);
-        --alert-border: rgba(168, 85, 247, 0.15);
-        --alert-text: #6b21a8;
-        --alert-icon-bg: #f3e8ff;
-
-        &:where(.dark, .dark *) {
-            --alert-bg: rgba(59, 7, 100, 0.4);
-            --alert-border: rgba(147, 51, 234, 0.3);
-            --alert-text: #e9d5ff;
-            --alert-icon-bg: rgba(147, 51, 234, 0.4);
-        }
-    }
-
-    .markdown-alert-important .markdown-alert-title::before {
-        content: "💬";
-    }
-
-    /* 2. Note (蓝色 - 类似 iOS 系统提示) ℹ️ */
-    .markdown-alert-note {
-        --alert-bg: rgba(239, 246, 255, 0.6);
-        --alert-border: rgba(59, 130, 246, 0.15);
-        --alert-text: #1e40af;
-        --alert-icon-bg: #dbeafe;
-
-        &:where(.dark, .dark *) {
-            --alert-bg: rgba(23, 37, 84, 0.4);
-            --alert-border: rgba(59, 130, 246, 0.3);
-            --alert-text: #bfdbfe;
-            --alert-icon-bg: rgba(37, 99, 235, 0.4);
-        }
-    }
-
-    .markdown-alert-note .markdown-alert-title::before {
-        content: "ℹ️";
-    }
-
-    /* 3. Tip (绿色 - 类似 Fitness/Health) 💡 */
-    .markdown-alert-tip {
-        --alert-bg: rgba(240, 253, 244, 0.6);
-        --alert-border: rgba(34, 197, 94, 0.15);
-        --alert-text: #15803d;
-        --alert-icon-bg: #dcfce7;
-
-        &:where(.dark, .dark *) {
-            --alert-bg: rgba(5, 46, 22, 0.4);
-            --alert-border: rgba(34, 197, 94, 0.3);
-            --alert-text: #bbf7d0;
-            --alert-icon-bg: rgba(21, 128, 61, 0.4);
-        }
-    }
-
-    .markdown-alert-tip .markdown-alert-title::before {
-        content: "💡";
-    }
-
-    /* 4. Warning (橙色 - 类似低电量模式) ⚠️ */
-    .markdown-alert-warning {
-        --alert-bg: rgba(255, 247, 237, 0.6);
-        --alert-border: rgba(249, 115, 22, 0.15);
-        --alert-text: #9a3412;
-        --alert-icon-bg: #ffedd5;
-
-        &:where(.dark, .dark *) {
-            --alert-bg: rgba(67, 20, 7, 0.4);
-            --alert-border: rgba(249, 115, 22, 0.3);
-            --alert-text: #fed7aa;
-            --alert-icon-bg: rgba(194, 65, 12, 0.4);
-        }
-    }
-
-    .markdown-alert-warning .markdown-alert-title::before {
-        content: "⚠️";
-    }
-
-    /* 5. Caution (红色 - 错误) 🛑 */
-    .markdown-alert-caution {
-        --alert-bg: rgba(254, 242, 242, 0.6);
-        --alert-border: rgba(239, 68, 68, 0.15);
-        --alert-text: #991b1b;
-        --alert-icon-bg: #fee2e2;
-
-        &:where(.dark, .dark *) {
-            --alert-bg: rgba(69, 10, 10, 0.4);
-            --alert-border: rgba(239, 68, 68, 0.3);
-            --alert-text: #fecaca;
-            --alert-icon-bg: rgba(185, 28, 28, 0.4);
-        }
-    }
-
-    .markdown-alert-caution .markdown-alert-title::before {
-        content: "🛑";
-    }
-}
-
-/* ...保留你之前的 @tailwind 和 .markdown-alert 代码... */
-
-@layer utilities {
-
-    /* 1. 优雅的入场动画 (Fade Up) 
-       Apple 的页面加载通常伴随着内容轻微上浮和透明度变化 
-    */
     .animate-enter-content {
-        animation: enter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        animation: enter 540ms cubic-bezier(0.19, 1, 0.22, 1) forwards;
     }
 
-    /* 依次延迟入场，用于列表项，制造“瀑布流”感觉 */
     .delay-100 {
         animation-delay: 100ms;
     }
@@ -254,8 +279,7 @@
     @keyframes enter {
         from {
             opacity: 0;
-            transform: translateY(10px);
-            /* 稍微向下偏移一点点 */
+            transform: translateY(8px);
         }
 
         to {
@@ -264,7 +288,6 @@
         }
     }
 
-    /* 2. 隐藏滚动条但保留功能 (Mac 风格) */
     .no-scrollbar::-webkit-scrollbar {
         display: none;
     }
@@ -273,20 +296,12 @@
         -ms-overflow-style: none;
         scrollbar-width: none;
     }
-
-    /* 3. 极致的平滑字体渲染 */
-    body {
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        text-rendering: optimizeLegibility;
-    }
 }
 
-/* --- Global Scrollbar Styling --- */
 @media (min-width: 640px) {
     ::-webkit-scrollbar {
-        width: 10px;
-        height: 10px;
+        width: 11px;
+        height: 11px;
     }
 
     ::-webkit-scrollbar-track {
@@ -294,18 +309,18 @@
     }
 
     ::-webkit-scrollbar-thumb {
-        @apply bg-gray-300 dark:bg-gray-700;
+        background: color-mix(in oklch, var(--text-muted) 45%, transparent);
         border: 3px solid transparent;
-        background-clip: content-box;
         border-radius: 9999px;
+        background-clip: content-box;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-        @apply bg-gray-400 dark:bg-gray-600;
+        background: color-mix(in oklch, var(--text) 52%, transparent);
+        background-clip: content-box;
     }
 }
 
-/* 4. 优化 ViewTransitions 的默认行为，让它更柔和 */
 ::view-transition-old(root),
 ::view-transition-new(root) {
     animation-duration: 0.3s;

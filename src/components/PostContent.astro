@@ -5,24 +5,14 @@ import Section from './Section.astro';
 <Section>
 	<div
 		class="
-            prose prose-lg dark:prose-invert max-w-none 
-            text-gray-700 dark:text-gray-300 
-            leading-relaxed
-            
-            /* Headings */
-            prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-gray-900 dark:prose-headings:text-white
-            
-            /* Links - Apple Blue */
-            prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
-            
-            /* Code Blocks - Clean Terminal Look */
-            prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:text-sm prose-code:font-mono prose-code:text-pink-600 dark:prose-code:text-pink-400 prose-code:before:content-none prose-code:after:content-none
-            
-            /* Images */
-            prose-img:rounded-xl prose-img:shadow-sm prose-img:border prose-img:border-gray-100 dark:prose-img:border-gray-800
-            
-            /* Blockquotes */
-            prose-blockquote:border-l-4 prose-blockquote:border-gray-200 dark:prose-blockquote:border-gray-700 prose-blockquote:text-gray-500 prose-blockquote:font-normal prose-blockquote:italic
+            prose prose-lg max-w-none dark:prose-invert
+            prose-headings:font-semibold prose-headings:text-[color:var(--text)]
+            prose-p:leading-8 prose-p:text-[color:var(--text)]
+            prose-a:text-[color:var(--accent)] prose-a:no-underline hover:prose-a:underline
+            prose-strong:text-[color:var(--text)] prose-code:rounded prose-code:bg-[color:var(--panel-strong)] prose-code:px-1.5 prose-code:py-0.5
+            prose-code:text-[color:var(--accent)] prose-code:before:content-none prose-code:after:content-none
+            prose-pre:border prose-pre:border-[var(--border)] prose-pre:bg-[#121212] prose-blockquote:border-l-2 prose-blockquote:border-[color:var(--accent-2)]
+            prose-blockquote:text-[color:var(--text-muted)] prose-img:rounded-xl prose-img:border prose-img:border-[var(--border)]
         "
 	>
 		<slot />

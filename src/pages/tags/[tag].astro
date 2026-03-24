@@ -6,104 +6,88 @@ import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 
 export async function getStaticPaths() {
-    const allPosts = await getCollection('posts');
-    const allTags = new Set<string>();
-    
-    allPosts.forEach(post => {
-        post.data.tags?.forEach(tag => allTags.add(tag));
-    });
+	const allPosts = await getCollection('posts');
+	const allTags = new Set<string>();
+	allPosts.forEach((post) => {
+		post.data.tags?.forEach((tag) => allTags.add(tag));
+	});
 
-    return [...allTags].map((tag) => {
-        const filteredPosts = allPosts.filter((post) => 
-            post.data.tags?.includes(tag)
-        );
-        
-        // 按时间倒序排列
-        filteredPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
-
-        return {
-            params: { tag },
-            props: { posts: filteredPosts }
-        };
-    });
+	return [...allTags].map((tag) => {
+		const filteredPosts = allPosts
+			.filter((post) => post.data.tags?.includes(tag))
+			.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+		return {
+			params: { tag },
+			props: { posts: filteredPosts },
+		};
+	});
 }
 
 interface Props {
-    posts: CollectionEntry<'posts'>[];
+	posts: CollectionEntry<'posts'>[];
 }
 
 const { tag } = Astro.params;
-const { posts } = Astro.props;
+const { posts } = Astro.props as Props;
 const { title } = AppConfig;
 
-// 日期格式化辅助函数
-function formatDate(date: Date) {
-    return date.toISOString().split('T')[0];
-}
+const latestDate = posts[0] ? new Date(posts[0].data.pubDate).toISOString().slice(0, 10) : '--';
 ---
 
 <Base head={{ title: `#${tag} - ${title}`, description: `Posts tagged with ${tag}` }}>
-    
-    <Section>
-        {/* 1. Header 区域：左对齐，带返回链接 */}
-        <div class="py-12 md:py-20 border-b border-gray-100 dark:border-white/5">
-            
+	<Section>
+		<div class="space-y-6 py-8 md:py-10">
+			<header class="panel p-6 md:p-8">
+				<p class="kicker">Tag Detail</p>
+				<h1 class="mt-2 text-3xl font-bold md:text-5xl">#{tag}</h1>
+				<p class="mt-3 text-sm leading-7 text-[color:var(--text-muted)] md:text-base">
+					这里汇总与「{tag}」相关的全部文章，便于你在同一主题下进行纵向回看。
+				</p>
+				<div class="mt-5 grid gap-3 sm:grid-cols-3">
+					<div class="panel-soft p-3">
+						<p class="kicker">Articles</p>
+						<p class="mt-1 text-2xl font-semibold">{posts.length}</p>
+					</div>
+					<div class="panel-soft p-3">
+						<p class="kicker">Latest Update</p>
+						<p class="mt-1 text-lg font-semibold">{latestDate}</p>
+					</div>
+					<div class="panel-soft p-3">
+						<p class="kicker">Back</p>
+						<a href="/tags" class="mt-1 inline-flex text-sm text-[color:var(--text-muted)] hover:text-[color:var(--text)]">
+							返回标签索引 →
+						</a>
+					</div>
+				</div>
+			</header>
 
-            <h1 class="text-4xl md:text-6xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
-                <span class="text-gray-300 dark:text-gray-600 mr-2">#</span>{tag}
-            </h1>
-            
-            <div class="flex items-center gap-3 text-lg text-gray-500 font-medium">
-                <span class="tracking-wide">话题回溯</span>
-                <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700"></span>
-                <span>共收录 {posts.length} 篇</span>
-            </div>
-        </div>
-    </Section>
-    
-    <Section>
-        {/* 2. 列表区域：复用 Posts 页面的列表样式 */}
-        <div class="py-10">
-            <div class="flex flex-col border-t border-gray-100 dark:border-white/5">
-                {posts.map((post) => (
-                    <a 
-                        href={`/posts/${post.slug}/`} 
-                        class="group flex flex-col md:flex-row md:items-center gap-2 md:gap-6 py-5 border-b border-gray-100 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors px-2 rounded-lg -mx-2"
-                    >
-                        {/* 日期列 */}
-                        <div class="w-32 shrink-0">
-                            <span class="text-xs font-mono text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
-                                {formatDate(post.data.pubDate)}
-                            </span>
-                        </div>
-
-                        {/* 内容主体 */}
-                        <div class="flex-grow min-w-0 pr-4">
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
-                                {post.data.title}
-                            </h3>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 mt-1 opacity-80 group-hover:opacity-100">
-                                {post.data.description}
-                            </p>
-                        </div>
-
-                        {/* 箭头图标 */}
-                        <div class="hidden md:flex items-center gap-4 shrink-0">
-                            <div class="flex gap-1">
-                                {/* 在话题详情页，可以不显示当前这个 tag，显示其他的 tag，或者干脆不显示 tag 以保持简洁。这里选择保持简洁，只显示箭头 */}
-                            </div>
-                            <svg class="w-4 h-4 text-gray-300 group-hover:text-indigo-500 transform group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                            </svg>
-                        </div>
-                    </a>
-                ))}
-            </div>
-            
-            {/* 底部装饰 */}
-            <div class="pt-20 pb-12 text-center opacity-20">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-            </div>
-        </div>
-    </Section>
+			<section class="panel p-5">
+				<div class="space-y-2">
+					{
+						posts.map((post) => (
+							<a
+								href={`/posts/${post.slug}/`}
+								class="grid gap-2 rounded-lg border border-transparent px-3 py-3 hover:border-[var(--border)] hover:bg-[color:var(--panel-strong)] md:grid-cols-[120px_1fr_auto]"
+							>
+								<span class="text-xs font-mono text-[color:var(--text-muted)]">
+									{new Date(post.data.pubDate).toISOString().slice(0, 10)}
+								</span>
+								<div class="min-w-0">
+									<p class="truncate text-sm font-semibold text-[color:var(--text)]">{post.data.title}</p>
+									<p class="mt-1 line-clamp-1 text-xs text-[color:var(--text-muted)]">{post.data.description}</p>
+								</div>
+								<div class="hidden items-center gap-1 md:flex">
+									{post.data.tags.filter((value) => value !== tag).slice(0, 2).map((item) => (
+										<span class="rounded-md border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[color:var(--text-muted)]">
+											#{item}
+										</span>
+									))}
+								</div>
+							</a>
+						))
+					}
+				</div>
+			</section>
+		</div>
+	</Section>
 </Base>

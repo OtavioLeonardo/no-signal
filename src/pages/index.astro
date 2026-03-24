@@ -1,254 +1,397 @@
 ---
-import { AppConfig } from '@/utils/AppConfig';
-import Base from '@/layouts/Base.astro';
-import Section from '@/components/Section.astro';
-import { getCollection, getEntry } from 'astro:content';
-import { Image } from 'astro:assets'; 
+import { AppConfig } from "@/utils/AppConfig";
+import Base from "@/layouts/Base.astro";
+import Section from "@/components/Section.astro";
+import { getCollection, getEntry } from "astro:content";
+import { Image } from "astro:assets";
 
 const { title, description } = AppConfig;
 
-// --- 1. 获取文章列表 ---
-const allPosts = await getCollection('posts');
-const sortedPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const allPosts = (await getCollection("posts")).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+const allDiary = (await getCollection("diary")).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
 
-// 提取置顶文章 (Featured) 和 列表文章 (List)
-// 安全修复：如果 sortedPosts 为空，pinnedPost 可能是 undefined
-const pinnedPost = sortedPosts.find(p => p.data.isPinned) || sortedPosts[0];
+const featuredPost = allPosts.find((post) => post.data.isPinned) || allPosts[0];
+const recentPosts = featuredPost
+	? allPosts.filter((post) => post.slug !== featuredPost.slug).slice(0, 8)
+	: allPosts.slice(0, 8);
+const latestDiary = allDiary.slice(0, 6);
 
-// 安全修复：先判断 pinnedPost 是否存在，再进行过滤
-const listPosts = pinnedPost 
-    ? sortedPosts.filter(p => p.slug !== pinnedPost.slug).slice(0, 10) 
-    : [];
+const yearSet = new Set(
+	allPosts.map((post) => new Date(post.data.pubDate).getFullYear()),
+);
+const oldestPost = allPosts.length ? allPosts[allPosts.length - 1] : undefined;
+const firstPostYear = oldestPost
+	? new Date(oldestPost.data.pubDate).getFullYear()
+	: new Date().getFullYear();
 
-// --- 2. 获取 Now 页面数据 ---
-const nowPage = await getEntry('pages', 'now');
-let NowContent;
-let lastUpdated;
+const tagMap = new Map<string, number>();
+for (const post of allPosts) {
+	for (const tag of post.data.tags || []) {
+		tagMap.set(tag, (tagMap.get(tag) || 0) + 1);
+	}
+}
+const topTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 9);
+const maxTagCount = topTags[0]?.[1] || 1;
 
+const nowPage = await getEntry("pages", "now");
+const nowTitle = nowPage?.data?.title || "Now";
+let nowUpdatedText = "未更新";
 if (nowPage) {
-    const { Content } = await nowPage.render();
-    NowContent = Content;
-    lastUpdated = new Date(nowPage.data.updatedDate).toLocaleDateString('zh-CN', {
-        year: 'numeric',
-        month: 'numeric',
-        day: 'numeric'
-    });
+	nowUpdatedText = new Date(nowPage.data.updatedDate).toLocaleDateString(
+		"zh-CN",
+	);
 }
 
-// --- 3. 生成热力图数据 (Signal Frequency) ---
-// 生成过去 112 天 (约16周) 的数据
-const heatmapData = Array.from({ length: 112 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - (111 - i)); // 从过去推到现在
-    const dateStr = d.toISOString().split('T')[0];
-    
-    // 检查这一天有没有发文章
-    const hasPost = allPosts.some(p => p.data.pubDate.toISOString().split('T')[0] === dateStr);
-    return { date: dateStr, hasPost };
+const signalMap = Array.from({ length: 98 }, (_, index) => {
+	const date = new Date();
+	date.setDate(date.getDate() - (97 - index));
+	const dateText = date.toISOString().slice(0, 10);
+	const hasPost = allPosts.some(
+		(post) => post.data.pubDate.toISOString().slice(0, 10) === dateText,
+	);
+	const hasDiary = allDiary.some(
+		(entry) => entry.data.pubDate.toISOString().slice(0, 10) === dateText,
+	);
+	return {
+		date: dateText,
+		level: hasPost && hasDiary ? 3 : hasPost || hasDiary ? 2 : 0,
+	};
 });
-
-const navTags = [
-    { name: '个人思考', count: 12 },
-    { name: '摄影', count: 5 },
-    { name: '阅读', count: 8 },
-    { name: '赛车', count: 4 },
-    { name: '音乐', count: 6 },
-    { name: '代码', count: 15 },
-];
-
-function formatDate(date: Date) {
-    return date.toISOString().split('T')[0];
-}
 ---
 
 <Base head={{ title, description }}>
-    <Section>
-        <div class="py-8 md:py-12 space-y-12">
-            
-            {/* --- HEADER --- */}
+	<Section>
+		<div class="space-y-8 py-8 md:space-y-10 md:py-10">
+			<header class="panel p-6 md:p-8">
+				<p class="kicker">Knowledge Operating System</p>
+				<div class="mt-3 grid gap-6 lg:grid-cols-[1.25fr_1fr]">
+					<div>
+						<h1
+							class="text-3xl font-bold leading-tight md:text-5xl"
+						>
+							一个用于长期思考、持续积累与反复迭代的个人知识场
+						</h1>
+						<p
+							class="mt-4 max-w-3xl text-sm leading-7 text-[color:var(--text-muted)] md:text-base"
+						>
+							这里不是“作品橱窗”，而是你的思考中枢。把赛车、音乐、阅读、技术、生活反思全都接入同一套笔记系统，
+							通过持续回看和重写，形成真正可复利的认知资产。
+						</p>
+					</div>
+					<div class="grid gap-3 sm:grid-cols-2">
+						<div class="panel-soft p-4">
+							<p class="kicker">文章总数</p>
+							<p class="mt-2 text-2xl font-semibold">
+								{allPosts.length}
+							</p>
+						</div>
+						<div class="panel-soft p-4">
+							<p class="kicker">日记条目</p>
+							<p class="mt-2 text-2xl font-semibold">
+								{allDiary.length}
+							</p>
+						</div>
+						<div class="panel-soft p-4">
+							<p class="kicker">活跃年份</p>
+							<p class="mt-2 text-2xl font-semibold">
+								{yearSet.size}
+							</p>
+						</div>
+						<div class="panel-soft p-4">
+							<p class="kicker">起始年份</p>
+							<p class="mt-2 text-2xl font-semibold">
+								{firstPostYear}
+							</p>
+						</div>
+					</div>
+				</div>
+			</header>
 
-            {/* --- TOP SECTION: 左 66% (Featured) / 右 33% (Widgets) --- */}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-auto">
-                
-                {/* 1. 主卡片 (特别呈现) - 占 2/3 */}
-                {/* 安全修复：只有 pinnedPost 存在时才渲染 */}
-                {pinnedPost ? (
-                    <a href={`/posts/${pinnedPost.slug}/`} class="group relative md:col-span-2 min-h-[320px] rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300">
-                        <div class="absolute inset-0 bg-gray-200 dark:bg-gray-700 transition-transform duration-700 group-hover:scale-105">
-                            {pinnedPost.data.image?.src ? (
-                                <Image 
-                                    src={pinnedPost.data.image.src} 
-                                    alt={pinnedPost.data.image.alt || pinnedPost.data.title} 
-                                    class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
-                                    width={1200} 
-                                    height={600}
-                                />
-                            ) : (
-                                <div class="w-full h-full bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20"></div>
-                            )}
-                        </div>
-                        
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+			<div id="home-top-grid" class="grid gap-6 lg:grid-cols-12">
+				<div class="lg:col-span-7">
+					{
+						featuredPost ? (
+							<a href={`/posts/${featuredPost.slug}/`} class="group block">
+								<article
+									id="home-featured-card"
+									class="panel overflow-hidden"
+								>
+									<div class="relative aspect-[21/9] border-b border-[var(--border)]">
+										{featuredPost.data.image?.src ? (
+											<Image
+												src={
+													featuredPost.data.image.src
+												}
+												alt={
+													featuredPost.data.image
+														.alt ||
+													featuredPost.data.title
+												}
+												class="h-full w-full object-cover"
+												width={1280}
+												height={800}
+											/>
+										) : (
+											<div class="h-full w-full bg-[color:var(--panel-strong)]" />
+										)}
+										<div class="absolute left-4 top-4 rounded-md border border-[var(--border)] bg-[color:var(--panel)] px-2 py-1 text-[11px] uppercase tracking-[0.16em] text-[color:var(--text-muted)]">
+											Featured
+										</div>
+									</div>
+									<div class="p-5 md:p-6">
+										<p class="text-xs font-mono text-[color:var(--text-muted)]">
+											{new Date(
+												featuredPost.data.pubDate,
+											).toLocaleDateString("zh-CN")}
+										</p>
+										<h2 class="mt-2 text-2xl font-semibold text-[color:var(--text)] group-hover:text-[color:var(--accent)]">
+											{featuredPost.data.title}
+										</h2>
+										<p class="mt-3 line-clamp-3 text-sm leading-7 text-[color:var(--text-muted)]">
+											{featuredPost.data.description}
+										</p>
+									</div>
+								</article>
+							</a>
+						) : (
+							<div class="panel p-6 text-sm text-[color:var(--text-muted)]">
+								暂无文章内容
+							</div>
+						)
+					}
+				</div>
 
-                        <div class="absolute bottom-0 left-0 p-6 md:p-8 w-full">
-                            <div class="mb-3">
-                                <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-white/20 backdrop-blur-md text-white rounded border border-white/10 shadow-sm">
-                                    特别呈现
-                                </span>
-                            </div>
-                            <h2 class="text-2xl md:text-4xl font-bold text-white mb-3 leading-tight group-hover:text-indigo-200 transition-colors">
-                                {pinnedPost.data.title}
-                            </h2>
-                            <p class="text-gray-200 text-sm md:text-base line-clamp-2 md:w-5/6 opacity-90">
-                                {pinnedPost.data.description}
-                            </p>
-                        </div>
-                    </a>
-                ) : (
-                    /* 如果没有文章，显示占位符 */
-                    <div class="md:col-span-2 min-h-[320px] rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center">
-                        <p class="text-gray-400">暂无文章</p>
-                    </div>
-                )}
+				<div
+					id="home-right-rail"
+					class="space-y-6 lg:col-span-5 lg:flex lg:flex-col"
+				>
+					<article class="panel p-5 lg:min-h-0 lg:flex-1">
+						<div class="mb-3 flex items-center justify-between">
+							<p class="kicker">Now</p>
+							<span
+								class="rounded-md border border-[var(--border)] bg-[color:var(--panel-strong)] px-2 py-1 text-[11px] text-[color:var(--text-muted)]"
+							>
+								更新于 {nowUpdatedText}
+							</span>
+						</div>
+						<div class="flex h-full flex-col justify-between gap-4">
+							<div class="space-y-2">
+								<p
+									class="text-lg font-semibold text-[color:var(--text)]"
+								>
+									{nowTitle}
+								</p>
+								<p
+									class="text-sm leading-7 text-[color:var(--text-muted)]"
+								>
+									专注于你要做的事，无论这件事到底有没有用。
+								</p>
+							</div>
+							<a
+								href="/now"
+								class="inline-flex items-center justify-center rounded-md border border-[var(--border)] bg-[color:var(--panel-strong)] px-3 py-2 text-sm font-medium text-[color:var(--text-muted)] hover:text-[color:var(--text)]"
+							>
+								打开 Now 页面 →
+							</a>
+						</div>
+					</article>
 
-                {/* 2. 右侧 Widgets - 占 1/3 */}
-                <div class="flex flex-col gap-6 h-full">
-                    
-                    {/* Widget A: 信号频度 (Heatmap) */}
-                    <div class="flex-1 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 shadow-sm flex flex-col justify-between hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                                信号频度
-                            </h3>
-                            <span class="text-[10px] font-mono text-gray-400 bg-gray-100 dark:bg-white/5 px-1.5 py-0.5 rounded">
-                                Last 16 weeks
-                            </span>
-                        </div>
-                        
-                        {/* 热力图网格 */}
-                        <div class="flex flex-wrap content-end gap-1 h-full">
-                            {heatmapData.map((day) => (
-                                <div 
-                                    class={`w-2 h-2 rounded-[1px] transition-colors duration-300 ${
-                                        day.hasPost 
-                                        ? 'bg-green-500 dark:bg-green-400 shadow-[0_0_4px_rgba(74,222,128,0.5)]' 
-                                        : 'bg-gray-100 dark:bg-white/5'
-                                    }`}
-                                    title={`${day.date}: ${day.hasPost ? 'Signal Detected' : 'No Signal'}`}
-                                ></div>
-                            ))}
-                        </div>
-                    </div>
+					<article class="panel p-5 lg:shrink-0">
+						<div class="mb-3 flex items-center justify-between">
+							<p class="kicker">Signal Graph</p>
+							<span class="text-xs text-[color:var(--text-muted)]"
+								>近 14 周</span
+							>
+						</div>
+						<div
+							class="grid gap-1"
+							style="grid-template-columns: repeat(14, minmax(0, 1fr));"
+						>
+							{
+								signalMap.map((item) => (
+									<div
+										class:list={[
+											"h-3 rounded-sm border border-black/5 dark:border-white/5",
+											item.level === 3
+												? "bg-[color:var(--accent)]"
+												: item.level === 2
+													? "bg-[color:var(--accent-2)]"
+													: "bg-[color:var(--panel-strong)]",
+										]}
+										title={item.date}
+									/>
+								))
+							}
+						</div>
+						<div
+							class="mt-3 flex items-center gap-4 text-[11px] text-[color:var(--text-muted)]"
+						>
+							<span class="inline-flex items-center gap-1"
+								><i
+									class="inline-block h-2 w-2 rounded-sm bg-[color:var(--accent)]"
+								></i>文章+日记</span
+							>
+							<span class="inline-flex items-center gap-1"
+								><i
+									class="inline-block h-2 w-2 rounded-sm bg-[color:var(--accent-2)]"
+								></i>单条记录</span
+							>
+						</div>
+					</article>
+				</div>
+			</div>
 
-                    {/* Widget B: 话题矩阵 (Tags) - 视觉加重 */}
-                    <div class="flex-1 rounded-2xl bg-gray-50 dark:bg-[#151516] border border-gray-200 dark:border-gray-800 p-6 flex flex-col shadow-inner">
-                         <div class="flex items-center justify-between mb-5">
-                             <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest">
-                                 话题矩阵
-                             </h3>
-                             <a href="/tags" class="text-xs text-indigo-500 hover:text-indigo-400 font-bold">查看标签 &rarr;</a>
-                         </div>
-                         
-                         <div class="flex flex-wrap gap-2.5">
-                            {navTags.map(tag => (
-                                <a href={`/tags/${tag.name}`} class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-gray-800 text-xs font-bold text-gray-700 dark:text-gray-200 rounded-lg border border-gray-200 dark:border-white/10 shadow-sm hover:border-indigo-500 hover:text-indigo-500 hover:shadow-md transition-all active:scale-95">
-                                    <span>{tag.name}</span>
-                                    {/* <span class="text-[9px] text-gray-400 font-mono bg-gray-100 dark:bg-black/30 px-1 rounded">{tag.count}</span> */}
-                                </a>
-                            ))}
-                         </div>
-                    </div>
-                </div>
-            </div>
+			<div class="grid gap-6 lg:grid-cols-12">
+				<section class="panel p-5 lg:col-span-8">
+					<div class="mb-4 section-rule">
+						<div class="flex items-center justify-between gap-3">
+							<h2 class="text-xl font-semibold">近期文章</h2>
+							<a
+								href="/posts"
+								class="shrink-0 text-sm text-[color:var(--text-muted)] hover:text-[color:var(--text)]"
+								>查看全部 →</a
+							>
+						</div>
+					</div>
+					<div class="space-y-2">
+						{
+							recentPosts.length ? (
+								recentPosts.map((post) => (
+									<a
+										href={`/posts/${post.slug}/`}
+										class="grid gap-2 rounded-lg border border-transparent px-3 py-3 hover:border-[var(--border)] hover:bg-[color:var(--panel-strong)] md:grid-cols-[130px_1fr_auto]"
+									>
+										<span class="text-xs font-mono text-[color:var(--text-muted)]">
+											{new Date(post.data.pubDate)
+												.toISOString()
+												.slice(0, 10)}
+										</span>
+										<div class="min-w-0">
+											<p class="truncate text-sm font-semibold text-[color:var(--text)]">
+												{post.data.title}
+											</p>
+											<p class="mt-1 line-clamp-1 text-xs text-[color:var(--text-muted)]">
+												{post.data.description}
+											</p>
+										</div>
+										<span class="hidden text-xs text-[color:var(--text-muted)] md:inline">
+											open
+										</span>
+									</a>
+								))
+							) : (
+								<p class="text-sm text-[color:var(--text-muted)]">
+									暂无近期文章。
+								</p>
+							)
+						}
+					</div>
+				</section>
 
+				<section class="panel p-5 lg:col-span-4">
+					<div class="mb-4 section-rule">
+						<h2 class="text-xl font-semibold">主题分布</h2>
+					</div>
+					<ul class="space-y-2">
+						{
+							topTags.map(([tag, count]) => (
+								<li>
+									<a
+										href={`/tags/${tag}`}
+										class="block rounded-lg px-2 py-2 hover:bg-[color:var(--panel-strong)]"
+									>
+										<div class="mb-1 flex items-center justify-between text-xs text-[color:var(--text-muted)]">
+											<span>#{tag}</span>
+											<span>{count}</span>
+										</div>
+										<div class="h-1.5 rounded-full bg-[color:var(--panel-strong)]">
+											<div
+												class="h-1.5 rounded-full bg-[color:var(--accent-2)]"
+												style={`width:${Math.max(10, Math.round((count / maxTagCount) * 100))}%`}
+											/>
+										</div>
+									</a>
+								</li>
+							))
+						}
+					</ul>
+				</section>
+			</div>
 
-            {/* --- BOTTOM SECTION: 左 40 (Now) / 右 60 (Logs) --- */}
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-                
-                {/* 1. 左侧: Now (40%) */}
-                <div class="lg:col-span-5">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400">
-                            Now / 实时信号
-                        </h3>
-                        {lastUpdated && (
-                            <span class="text-[10px] text-gray-400 bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-full">
-                                更新于 {lastUpdated}
-                            </span>
-                        )}
-                    </div>
+			<section class="panel p-5">
+				<div class="mb-4 section-rule">
+					<div class="flex items-center justify-between gap-3">
+						<h2 class="text-xl font-semibold">最新日记</h2>
+						<a
+							href="/diary"
+							class="shrink-0 text-sm text-[color:var(--text-muted)] hover:text-[color:var(--text)]"
+							>进入 Diary Hub →</a
+						>
+					</div>
+				</div>
+				<div class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+					{
+						latestDiary.map((entry) => (
+							<a
+								href={`/diary/${entry.slug}`}
+								class="rounded-lg border border-[var(--border)] bg-[color:var(--panel-strong)] p-4 hover:border-[color:var(--accent)]"
+							>
+								<p class="text-xs font-mono text-[color:var(--text-muted)]">
+									{new Date(entry.data.pubDate)
+										.toISOString()
+										.slice(0, 10)}
+								</p>
+								<h3 class="mt-2 line-clamp-2 text-base font-semibold text-[color:var(--text)]">
+									{entry.data.title}
+								</h3>
+								<p class="mt-1 line-clamp-2 text-xs leading-6 text-[color:var(--text-muted)]">
+									{entry.data.description || "无摘要"}
+								</p>
+							</a>
+						))
+					}
+				</div>
+			</section>
+		</div>
+	</Section>
 
-                    <div class="rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 p-6 md:p-8">
-                        {/* 安全修复：确保 NowContent 存在再渲染 */}
-                        {nowPage && NowContent ? (
-                            <div class="prose prose-sm prose-gray dark:prose-invert 
-                                prose-headings:font-bold prose-headings:text-gray-900 dark:prose-headings:text-white
-                                prose-p:text-gray-600 dark:prose-p:text-gray-300
-                                prose-a:text-indigo-500 hover:prose-a:text-indigo-600 prose-a:no-underline
-                                prose-li:marker:text-gray-300">
-                                <NowContent />
-                            </div>
-                        ) : (
-                            <p class="text-sm text-gray-400 italic">No signal detected...</p>
-                        )}
-                        <div class="mt-6 pt-4 border-t border-gray-200/50 dark:border-white/5 text-xs font-mono text-gray-400 opacity-60">
-                            > End of transmission
-                        </div>
-                    </div>
-                </div>
+	<script is:inline>
+		const initHomeTopRail = () => {
+			const featured = document.getElementById("home-featured-card");
+			const rightRail = document.getElementById("home-right-rail");
+			if (
+				!(featured instanceof HTMLElement) ||
+				!(rightRail instanceof HTMLElement)
+			)
+				return;
 
-                {/* 2. 右侧: Logs (60%) */}
-                <div class="lg:col-span-7">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400">
-                            近期文章
-                        </h3>
-                        <a href="/posts" class="text-xs font-bold text-indigo-500 hover:text-indigo-600 transition-colors">
-                            查看归档 &rarr;
-                        </a>
-                    </div>
+			const syncHeight = () => {
+				if (window.innerWidth < 1024) {
+					rightRail.style.removeProperty("height");
+					return;
+				}
+				rightRail.style.height = `${featured.getBoundingClientRect().height}px`;
+			};
 
-                    <div class="flex flex-col border-t border-gray-200 dark:border-gray-800">
-                        {listPosts.length > 0 ? (
-                            listPosts.map((post) => (
-                                <a href={`/posts/${post.slug}/`} class="group flex flex-col md:flex-row md:items-center gap-2 md:gap-6 py-4 border-b border-gray-100 dark:border-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors px-2 rounded-lg -mx-2">
-                                    
-                                    <div class="w-36 shrink-0">
-                                        <span class="text-xs font-mono text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
-                                            {formatDate(post.data.pubDate)}
-                                        </span>
-                                    </div>
+			syncHeight();
+			const observer = new ResizeObserver(syncHeight);
+			observer.observe(featured);
+			window.addEventListener("resize", syncHeight);
 
-                                    <div class="flex-grow min-w-0 pr-4">
-                                        <h4 class="text-base font-semibold text-gray-900 dark:text-gray-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
-                                            {post.data.title}
-                                        </h4>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5 opacity-80 group-hover:opacity-100">
-                                            {post.data.description}
-                                        </p>
-                                    </div>
+			document.addEventListener(
+				"astro:before-swap",
+				() => {
+					observer.disconnect();
+					window.removeEventListener("resize", syncHeight);
+				},
+				{ once: true },
+			);
+		};
 
-                                    <div class="hidden md:flex items-center gap-4 shrink-0">
-                                        <div class="flex gap-1">
-                                            {post.data.tags && post.data.tags.slice(0, 2).map(tag => (
-                                                <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 border border-gray-200 dark:border-gray-700">
-                                                    {tag}
-                                                </span>
-                                            ))}
-                                        </div>
-                                        <svg class="w-4 h-4 text-gray-300 group-hover:text-indigo-500 transform group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                                        </svg>
-                                    </div>
-                                </a>
-                            ))
-                        ) : (
-                            <div class="py-10 text-center text-gray-400 text-sm">暂无更多文章</div>
-                        )}
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </Section>
+		document.addEventListener("astro:page-load", initHomeTopRail);
+	</script>
 </Base>

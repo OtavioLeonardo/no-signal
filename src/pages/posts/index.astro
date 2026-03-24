@@ -7,119 +7,179 @@ import type { CollectionEntry } from 'astro:content';
 
 const { title, description } = AppConfig;
 
-const allPosts = await getCollection('posts');
-allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const allPosts = (await getCollection('posts')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
 
-// 数据分组逻辑
-const groupedPosts = allPosts.reduce((acc, post) => {
-    const year = new Date(post.data.pubDate).getFullYear().toString();
-    if (!acc[year]) {
-        acc[year] = [];
-    }
-    acc[year].push(post);
-    return acc;
-}, {} as Record<string, CollectionEntry<'posts'>[]>);
-
+const groupedPosts = allPosts.reduce(
+	(acc, post) => {
+		const year = new Date(post.data.pubDate).getFullYear().toString();
+		if (!acc[year]) acc[year] = [];
+		acc[year].push(post);
+		return acc;
+	},
+	{} as Record<string, CollectionEntry<'posts'>[]>,
+);
 const years = Object.keys(groupedPosts).sort((a, b) => Number(b) - Number(a));
+
+const uniqueTags = [...new Set(allPosts.flatMap((post) => post.data.tags || []))];
 ---
 
 <Base head={{ title: `归档 - ${title}`, description }}>
-    
-    {/* 1. 顶部 Header */}
-    <Section>
-        <div class="py-12 md:py-20 border-b border-gray-100 dark:border-white/5">
-            <h1 class="text-4xl md:text-6xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
-                创作归档
-            </h1>
-            <div class="flex items-center gap-3 text-lg text-gray-500 font-medium">
-                <span class="tracking-wide">技巧 · 思辨 · 随感</span>
-                <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700"></span>
-                <span>共收录 {allPosts.length} 篇</span>
-            </div>
-        </div>
-    </Section>
-    
-    <Section>
-        <div class="py-10 space-y-24">
-            {years.map((year) => (
-                <div class="relative">
-                    
-                    {/* 2. 年份区域 */}
-                    <div class="flex flex-col md:flex-row gap-8 md:gap-16">
-                        
-                        {/* 左侧年份水印 */}
-                        <div class="md:w-32 flex-shrink-0">
-                            <div class="sticky top-24 text-left">
-                                <span class="block text-6xl md:text-8xl font-bold text-gray-300 dark:text-gray-700 tracking-tighter leading-none select-none">
-                                    {year}
-                                </span>
-                                <div class="hidden md:block w-12 h-1.5 bg-gray-300 dark:bg-gray-700 mt-4 ml-1 rounded-full"></div>
-                            </div>
-                        </div>
+	<Section>
+		<div class="space-y-6 py-8 md:py-10">
+			<header class="panel p-6 md:p-8">
+				<p class="kicker">Archive</p>
+				<h1 class="mt-2 text-3xl font-bold md:text-5xl">创作归档</h1>
+				<p class="mt-3 max-w-3xl text-sm leading-7 text-[color:var(--text-muted)] md:text-base">
+					把散落的文章按时间和主题组织成可追踪的知识路径。你可以按关键词快速检索，也可以按年度回看思路如何演化。
+				</p>
+				<div class="mt-5 grid gap-3 sm:grid-cols-3">
+					<div class="panel-soft p-3">
+						<p class="kicker">Total Posts</p>
+						<p class="mt-1 text-2xl font-semibold">{allPosts.length}</p>
+					</div>
+					<div class="panel-soft p-3">
+						<p class="kicker">Years</p>
+						<p class="mt-1 text-2xl font-semibold">{years.length}</p>
+					</div>
+					<div class="panel-soft p-3">
+						<p class="kicker">Tags</p>
+						<p class="mt-1 text-2xl font-semibold">{uniqueTags.length}</p>
+					</div>
+				</div>
+			</header>
 
-                        {/* 文章列表 */}
-                        <div class="flex-1 flex flex-col">
-                            {groupedPosts[year]!.map((post) => {
-                                const dateObj = new Date(post.data.pubDate);
-                                // ✅ 汉化点：日期改为中文格式 (例如：1月 05)
-                                const month = (dateObj.getMonth() + 1).toString() + '月';
-                                const day = dateObj.getDate().toString().padStart(2, '0');
+			<div class="panel p-4 md:p-5">
+				<div class="grid gap-3 md:grid-cols-[1.4fr_1fr]">
+					<input
+						id="archive-search"
+						type="search"
+						placeholder="搜索标题或描述（按 / 聚焦）"
+						class="rounded-lg border border-[var(--border)] bg-[color:var(--panel-strong)] px-3 py-2.5 text-sm outline-none focus:border-[color:var(--accent-2)]"
+					/>
+					<select
+						id="archive-year-filter"
+						class="rounded-lg border border-[var(--border)] bg-[color:var(--panel-strong)] px-3 py-2.5 text-sm outline-none focus:border-[color:var(--accent-2)]"
+					>
+						<option value="all">所有年份</option>
+						{years.map((year) => <option value={year}>{year} 年</option>)}
+					</select>
+				</div>
+			</div>
 
-                                return (
-                                    <a 
-    href={`/posts/${post.slug}`} 
-    class="group relative py-6 md:py-8 border-t first:border-t-0 border-gray-100 dark:border-white/5 transition-all duration-300 hover:bg-gray-50/50 dark:hover:bg-white/5 -mx-6 px-3 md:mx-0 md:px-0 rounded-xl md:rounded-none md:hover:bg-transparent"
->
-                                        <div class="flex flex-col md:flex-row md:items-baseline gap-4 md:gap-8">
-                                            
-                                            {/* 日期列 */}
-                                            <div class="flex md:flex-col items-baseline md:items-end gap-2 md:gap-0 w-full md:w-24 flex-shrink-0 text-gray-400 font-mono text-sm md:text-base">
-                                                <span class="font-bold text-gray-900 dark:text-gray-200">{month} {day}</span>
-                                                <span class="hidden md:inline text-xs opacity-50">/ {year}</span>
-                                            </div>
+			<div class="grid items-start gap-6 lg:grid-cols-[220px_1fr]">
+				<aside class="panel sticky top-24 hidden p-4 lg:block">
+					<p class="kicker mb-3">年份导航</p>
+					<ul class="space-y-1 text-sm">
+						{
+							years.map((year) => (
+								<li>
+									<a
+										href={`#year-${year}`}
+										class="flex items-center justify-between rounded-md px-2 py-1.5 text-[color:var(--text-muted)] hover:bg-[color:var(--panel-strong)] hover:text-[color:var(--text)]"
+									>
+										<span>{year}</span>
+										<span class="font-mono text-xs">{groupedPosts[year]?.length || 0}</span>
+									</a>
+								</li>
+							))
+						}
+					</ul>
+				</aside>
 
-                                            {/* 内容主体 */}
-                                            <div class="flex-1 min-w-0">
-                                                <h3 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                                    {post.data.title}
-                                                </h3>
+				<main class="space-y-5">
+					{
+						years.map((year) => (
+							<section id={`year-${year}`} data-year-section={year} class="panel p-5">
+								<div class="mb-4 flex items-center justify-between border-b border-[var(--border)] pb-3">
+									<h2 class="text-2xl font-semibold">{year}</h2>
+									<span class="text-xs text-[color:var(--text-muted)]">
+										共 {groupedPosts[year]?.length || 0} 篇
+									</span>
+								</div>
+								<div class="space-y-1.5">
+									{groupedPosts[year]!.map((post) => (
+										<a
+											href={`/posts/${post.slug}`}
+											data-archive-item
+											data-year={year}
+											data-title={post.data.title.toLowerCase()}
+											data-description={(post.data.description || '').toLowerCase()}
+											class="grid gap-2 rounded-lg border border-transparent px-3 py-3 hover:border-[var(--border)] hover:bg-[color:var(--panel-strong)] md:grid-cols-[120px_1fr_auto]"
+										>
+											<span class="text-xs font-mono text-[color:var(--text-muted)]">
+												{new Date(post.data.pubDate).toISOString().slice(0, 10)}
+											</span>
+											<div class="min-w-0">
+												<p class="truncate text-sm font-semibold text-[color:var(--text)]">{post.data.title}</p>
+												<p class="mt-1 line-clamp-1 text-xs text-[color:var(--text-muted)]">{post.data.description}</p>
+											</div>
+											<div class="hidden items-center gap-1 md:flex">
+												{post.data.tags.slice(0, 2).map((tag) => (
+													<span class="rounded-md border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[color:var(--text-muted)]">
+														#{tag}
+													</span>
+												))}
+											</div>
+										</a>
+									))}
+								</div>
+							</section>
+						))
+					}
+				</main>
+			</div>
+		</div>
+	</Section>
 
-                                                <div class="flex flex-wrap gap-2 mb-3">
-                                                    {post.data.tags && post.data.tags.map((tag: string) => (
-                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300 uppercase tracking-wider">
-                                                            {tag}
-                                                        </span>
-                                                    ))}
-                                                </div>
+	<script is:inline>
+		const initArchiveFilters = () => {
+			const searchInput = document.getElementById('archive-search');
+			const yearFilter = document.getElementById('archive-year-filter');
+			if (!(searchInput instanceof HTMLInputElement) || !(yearFilter instanceof HTMLSelectElement) || searchInput.dataset.bound === '1') return;
 
-                                                <p class="text-base text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed max-w-2xl">
-                                                    {post.data.description}
-                                                </p>
-                                                
-                                                <div class="md:hidden mt-4 text-sm font-semibold text-indigo-600 dark:text-indigo-400">
-                                                    阅读全文 →
-                                                </div>
-                                            </div>
+			searchInput.dataset.bound = '1';
+			const items = Array.from(document.querySelectorAll('[data-archive-item]'));
+			const yearSections = Array.from(document.querySelectorAll('[data-year-section]'));
 
-                                            {/* 桌面端悬浮箭头 */}
-                                            <div class="hidden md:flex items-center self-center justify-center w-10 h-10 rounded-full border border-gray-100 dark:border-white/10 text-gray-300 opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                                            </div>
-                                        </div>
-                                    </a>
-                                )
-                            })}
-                        </div>
-                    </div>
-                </div>
-            ))}
-        </div>
-        
-        {/* 底部装饰点 */}
-        <div class="py-20 text-center">
-            <span class="inline-block w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700 mx-1"></span>
-            <span class="inline-block w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700 mx-1"></span>
-            <span class="inline-block w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700 mx-1"></span>
-        </div>
-    </Section>
+			const applyFilters = () => {
+				const keyword = searchInput.value.trim().toLowerCase();
+				const year = yearFilter.value;
+
+				items.forEach((item) => {
+					if (!(item instanceof HTMLElement)) return;
+					const title = item.dataset.title || '';
+					const description = item.dataset.description || '';
+					const itemYear = item.dataset.year || '';
+					const keywordMatched = !keyword || title.includes(keyword) || description.includes(keyword);
+					const yearMatched = year === 'all' || itemYear === year;
+					item.classList.toggle('hidden', !(keywordMatched && yearMatched));
+				});
+
+				yearSections.forEach((section) => {
+					if (!(section instanceof HTMLElement)) return;
+					const visible = Array.from(section.querySelectorAll('[data-archive-item]')).some(
+						(item) => !(item instanceof HTMLElement ? item.classList.contains('hidden') : true),
+					);
+					section.classList.toggle('hidden', !visible);
+				});
+			};
+
+			[searchInput, yearFilter].forEach((element) => {
+				element.addEventListener('input', applyFilters);
+				element.addEventListener('change', applyFilters);
+			});
+
+			window.addEventListener('keydown', (event) => {
+				const activeTag = document.activeElement ? document.activeElement.tagName : '';
+				if (event.key === '/' && activeTag !== 'INPUT' && activeTag !== 'TEXTAREA') {
+					event.preventDefault();
+					searchInput.focus();
+				}
+			});
+		};
+
+		document.addEventListener('astro:page-load', initArchiveFilters);
+	</script>
 </Base>

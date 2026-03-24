@@ -1,20 +1,49 @@
 ---
 import { getCollection } from 'astro:content';
-// 你可以复用 PostLayout，也可以专门写一个 DiaryLayout
-import PostLayout from '../../layouts/diary.astro'; 
+import PostLayout from '../../layouts/diary.astro';
 
 export async function getStaticPaths() {
-  const diaryEntries = await getCollection('diary');
-  return diaryEntries.map(entry => ({
-    params: { slug: entry.slug },
-    props: { entry },
-  }));
+	const diaryEntries = await getCollection('diary');
+	return diaryEntries.map((entry) => ({
+		params: { slug: entry.slug },
+		props: { entry },
+	}));
 }
 
 const { entry } = Astro.props;
+
+const allEntries = (await getCollection('diary')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+const currentIndex = allEntries.findIndex((item) => item.slug === entry.slug);
+const newerEntry = currentIndex > 0 ? allEntries[currentIndex - 1] : undefined;
+const olderEntry =
+	currentIndex >= 0 && currentIndex < allEntries.length - 1
+		? allEntries[currentIndex + 1]
+		: undefined;
+
 const { Content } = await entry.render();
 ---
 
-<PostLayout frontmatter={entry.data}>
+<PostLayout
+	frontmatter={entry.data}
+	slug={entry.slug}
+	neighbors={{
+		newer: newerEntry
+			? {
+					slug: newerEntry.slug,
+					title: newerEntry.data.title,
+					pubDate: newerEntry.data.pubDate,
+				}
+			: undefined,
+		older: olderEntry
+			? {
+					slug: olderEntry.slug,
+					title: olderEntry.data.title,
+					pubDate: olderEntry.data.pubDate,
+				}
+			: undefined,
+	}}
+>
   <Content />
 </PostLayout>

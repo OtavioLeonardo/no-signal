@@ -5,150 +5,108 @@ import { AppConfig } from '@/utils/AppConfig';
 
 const { title } = AppConfig;
 
-// 1. 数据结构 (汉化版)
 const toolGroups = [
-  {
-    category: "赛道工程",
-    sub: "Sim Racing",
-    icon: "🏁",
-    color: "text-red-500",
-    list: [
-      {
-        name: "LMU PitWall",
-        description: "Le Mans Ultimate 必备策略数据查询与燃油计算工具。",
-        url: "https://otavioleonardo.github.io/lmu-pitwall/",
-        icon: "🏎️",
-        tag: "Web App"
-      },
-      {
-        name: "Motec Setup Guide",
-        description: "基于遥测数据分析的赛车物理调校速查手册。",
-        url: "#",
-        icon: "📈",
-        tag: "PDF"
-      }
-    ]
-  },
-  {
-    category: "代码实验",
-    sub: "Dev Labs",
-    icon: "💻",
-    color: "text-blue-500",
-    list: [
-      {
-        name: "Sudoku Solver",
-        description: "基于回溯算法的数独求解器演示。",
-        url: "#",
-        icon: "🧩",
-        tag: "Algo"
-      },
-      {
-        name: "Zen Clock",
-        description: "使用 Swift 开发的极简主义时钟应用。",
-        url: "#",
-        icon: "⌚",
-        tag: "iOS"
-      }
-    ]
-  },
-  {
-    category: "生活与知",
-    sub: "Life & Learning",
-    icon: "☕",
-    color: "text-amber-500",
-    list: [
-      {
-        name: "Deutsch Notizen",
-        description: "A1-B1 德语语法结构笔记与 Anki 复习卡片。",
-        url: "#",
-        icon: "🇩🇪",
-        tag: "Notion"
-      }
-    ]
-  }
+	{
+		category: '赛道工程',
+		sub: 'Sim Racing',
+		icon: '🏁',
+		list: [
+			{
+				name: 'LMU PitWall',
+				description: 'Le Mans Ultimate 策略数据查询与燃油计算工具。',
+				url: 'https://otavioleonardo.github.io/lmu-pitwall/',
+				tag: 'Web App',
+			},
+			{
+				name: 'Motec Setup Guide',
+				description: '基于遥测数据分析的赛车调校速查手册。',
+				url: '#',
+				tag: 'PDF',
+			},
+		],
+	},
+	{
+		category: '代码实验',
+		sub: 'Dev Labs',
+		icon: '🧪',
+		list: [
+			{
+				name: 'Sudoku Solver',
+				description: '基于回溯算法的数独求解器。',
+				url: '#',
+				tag: 'Algo',
+			},
+			{
+				name: 'Zen Clock',
+				description: '极简主义时钟应用原型。',
+				url: '#',
+				tag: 'iOS',
+			},
+		],
+	},
+	{
+		category: '学习系统',
+		sub: 'Learning',
+		icon: '📚',
+		list: [
+			{
+				name: 'Deutsch Notizen',
+				description: 'A1-B1 德语语法笔记与复习卡片。',
+				url: '#',
+				tag: 'Notes',
+			},
+		],
+	},
 ];
 ---
 
-<Base head={{ title: `数字工坊 - ${title}`, description: 'Curated tools and projects' }}>
-  <Section>
-    <div class="py-12 md:py-20 max-w-5xl mx-auto">
-      
-      {/* 1. Header 区域：保持全站统一左对齐风格 */}
-      <div class="mb-16 border-b border-gray-100 dark:border-white/5 pb-8">
-        <h1 class="text-4xl md:text-6xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
-          数字工坊
-        </h1>
-        <div class="flex items-center gap-3 text-lg text-gray-500 font-medium">
-            <span class="tracking-wide">利器 · 原型 · 玩具</span>
-            <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700"></span>
-            <span>{toolGroups.reduce((acc, g) => acc + g.list.length, 0)} 个项目</span>
-        </div>
-      </div>
+<Base head={{ title: `数字工坊 - ${title}`, description: 'Tools and systems I build/use' }}>
+	<Section>
+		<div class="space-y-6 py-8 md:py-10">
+			<header class="panel p-6 md:p-8">
+				<p class="kicker">Tooling Workspace</p>
+				<h1 class="mt-2 text-3xl font-bold md:text-5xl">数字工坊</h1>
+				<p class="mt-3 max-w-3xl text-sm leading-7 text-[color:var(--text-muted)] md:text-base">
+					围绕写作、赛车、学习和工程实践搭建的小工具库。每个工具都服务于真实任务，而不是展示技术栈。
+				</p>
+			</header>
 
-      <div class="space-y-16">
-        {toolGroups.map((group) => (
-          <section class="animate-enter-content">
-            
-            {/* 分类标题：左侧竖线装饰 */}
-            <div class="flex items-baseline gap-3 mb-6 px-1">
-              <span class={`text-xl self-center ${group.color} filter drop-shadow-sm`}>{group.icon}</span>
-              <h2 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-                {group.category}
-              </h2>
-              <span class="text-sm font-mono text-gray-400 dark:text-gray-600 font-medium tracking-wide uppercase opacity-80">
-                / {group.sub}
-              </span>
-            </div>
-
-            {/* 卡片网格：增加 hover 时的位移感 */}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-              {group.list.map((tool) => (
-                <a 
-                  href={tool.url} 
-                  target={tool.url.startsWith('http') ? "_blank" : "_self"}
-                  class="group relative flex items-start gap-5 p-5 rounded-2xl bg-gray-50 dark:bg-[#151516] border border-gray-100 dark:border-white/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:bg-white dark:hover:bg-[#1A1A1C] hover:border-gray-200 dark:hover:border-white/10"
-                >
-                  {/* Icon: 方形圆角容器 */}
-                  <div class="shrink-0 flex items-center justify-center w-12 h-12 rounded-xl bg-white dark:bg-white/5 text-2xl shadow-sm border border-gray-100 dark:border-white/5 group-hover:scale-105 transition-transform duration-300">
-                    {tool.icon}
-                  </div>
-
-                  {/* Content */}
-                  <div class="flex-1 min-w-0 pt-0.5">
-                    <div class="flex items-center justify-between mb-1">
-                      <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 truncate pr-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                        {tool.name}
-                      </h3>
-                      
-                      {/* Tag: 胶囊样式 */}
-                      {tool.tag && (
-                        <span class="shrink-0 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-200/50 dark:bg-white/10 text-gray-500 dark:text-gray-400 border border-transparent group-hover:border-gray-200 dark:group-hover:border-white/10 transition-colors">
-                          {tool.tag}
-                        </span>
-                      )}
-                    </div>
-                    
-                    <p class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed opacity-90 group-hover:opacity-100">
-                      {tool.description}
-                    </p>
-                  </div>
-
-                  {/* External Link Arrow */}
-                  <div class="absolute top-5 right-5 text-gray-300 dark:text-gray-600 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
-
-      {/* 底部装饰 */}
-      <div class="pt-20 pb-12 text-center opacity-20">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-      </div>
-
-    </div>
-  </Section>
+			<div class="space-y-5">
+				{
+					toolGroups.map((group) => (
+						<section class="panel p-5">
+							<div class="mb-4 flex items-end justify-between section-rule">
+								<div class="flex items-center gap-3">
+									<span class="text-xl">{group.icon}</span>
+									<div>
+										<h2 class="text-xl font-semibold">{group.category}</h2>
+										<p class="text-xs uppercase tracking-[0.16em] text-[color:var(--text-muted)]">{group.sub}</p>
+									</div>
+								</div>
+							</div>
+							<div class="grid gap-3 md:grid-cols-2">
+								{
+									group.list.map((tool) => (
+										<a
+											href={tool.url}
+											target={tool.url.startsWith('http') ? '_blank' : '_self'}
+											class="rounded-lg border border-[var(--border)] bg-[color:var(--panel-strong)] p-4 hover:border-[color:var(--accent-2)]"
+										>
+											<div class="mb-2 flex items-center justify-between gap-2">
+												<h3 class="text-base font-semibold text-[color:var(--text)]">{tool.name}</h3>
+												<span class="rounded-md border border-[var(--border)] px-1.5 py-0.5 text-[10px] text-[color:var(--text-muted)]">
+													{tool.tag}
+												</span>
+											</div>
+											<p class="text-sm leading-7 text-[color:var(--text-muted)]">{tool.description}</p>
+										</a>
+									))
+								}
+							</div>
+						</section>
+					))
+				}
+			</div>
+		</div>
+	</Section>
 </Base>

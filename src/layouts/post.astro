@@ -21,38 +21,23 @@ const hasHeadings = headings && headings.length > 0;
 ---
 
 <Base head={{ title: frontmatter.title, description }}>
-    {/* 外层容器 */}
-    <div class="mx-auto w-full max-w-screen-xl px-4 md:px-8 py-8 md:py-12">
-        {
-            /* ✅ 布局控制：
-            - 如果有标题 (hasHeadings)：使用原来的 240px + 1fr 双栏布局
-            - 如果没标题：保持默认单列 (grid-cols-1)，内容自动居中
-        */
-        }
+    <div class="mx-auto w-full max-w-[1240px] px-4 py-8 sm:px-6 md:py-10 lg:px-8">
         <div
-            class={`grid grid-cols-1 gap-8 items-start ${hasHeadings ? "lg:grid-cols-[240px_1fr] lg:gap-12" : "justify-center"}`}
+            class={`grid grid-cols-1 items-start gap-6 ${hasHeadings ? "lg:grid-cols-[260px_1fr] lg:gap-8" : "justify-center"}`}
         >
-            {/* ✅ 侧边栏：只有在有标题时才渲染 */}
             {
                 hasHeadings && (
-                    <aside class="hidden lg:block sticky top-24 self-start">
+                    <aside class="hidden self-start lg:sticky lg:top-24 lg:block">
                         <TableOfContents headings={headings} />
                     </aside>
                 )
             }
 
-            {
-                /* ✅ 主内容区域：
-                - 如果没标题：添加 max-w-4xl mx-auto 让文章居中且不要太宽（防止阅读体验变差）
-                - 如果有标题：保持 min-w-0 填满剩余空间
-            */
-            }
             <main
                 class={`min-w-0 ${hasHeadings ? "" : "mx-auto w-full max-w-4xl"}`}
             >
-                {/* 样式保持不变：手机端无框，电脑端卡片 */}
                 <article
-                    class="w-full p-0 md:p-10 lg:p-12 md:bg-white md:dark:bg-gray-900 md:shadow-2xl md:shadow-gray-200/50 md:dark:shadow-black/50 md:rounded-3xl md:border md:border-gray-100 md:dark:border-gray-800"
+                    class="panel w-full p-4 md:p-8 lg:p-10"
                 >
                     <PostHeader
                         title={frontmatter.title}
@@ -75,33 +60,33 @@ const hasHeadings = headings && headings.length > 0;
                     {/* 思考轨迹 */}
                     {
                         updates.length > 0 && (
-                            <div class="mt-16 pt-8 border-t border-gray-100 dark:border-gray-800">
-                                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                            <div class="mt-16 border-t border-[var(--border)] pt-8">
+                                <h3 class="mb-6 flex items-center gap-2 text-lg font-semibold text-[color:var(--text)]">
                                     <span>思考轨迹</span>
-                                    <span class="text-xs font-normal text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
+                                    <span class="rounded-md border border-[var(--border)] bg-[color:var(--panel-strong)] px-2 py-0.5 text-xs font-normal text-[color:var(--text-muted)]">
                                         不断进步
                                     </span>
                                 </h3>
 
                                 <div class="relative pl-2">
-                                    <div class="absolute left-[7px] top-2 bottom-4 w-px bg-gray-200 dark:bg-gray-700" />
+                                    <div class="absolute bottom-4 left-[7px] top-2 w-px bg-[var(--border)]" />
                                     <div class="space-y-8">
                                         {updates.map((item: any) => (
                                             <div class="relative pl-8">
-                                                <div class="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-white dark:bg-gray-900 border-2 border-indigo-500 z-10" />
+                                                <div class="absolute left-0 top-1.5 z-10 h-4 w-4 rounded-full border-2 border-[color:var(--accent)] bg-[color:var(--panel)]" />
                                                 <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mb-2">
-                                                    <span class="font-mono text-sm text-indigo-500 font-medium">
+                                                    <span class="font-mono text-sm font-medium text-[color:var(--accent)]">
                                                         {new Date(
                                                             item.date,
                                                         ).toLocaleDateString(
                                                             "zh-CN",
                                                         )}
                                                     </span>
-                                                    <span class="font-bold text-gray-900 dark:text-gray-100">
+                                                    <span class="font-semibold text-[color:var(--text)]">
                                                         {item.title}
                                                     </span>
                                                 </div>
-                                                <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                                                <p class="text-sm leading-relaxed text-[color:var(--text-muted)]">
                                                     {item.content}
                                                 </p>
                                             </div>

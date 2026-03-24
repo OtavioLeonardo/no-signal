@@ -2,122 +2,523 @@
 import { AppConfig } from '@/utils/AppConfig';
 import Base from '@/layouts/Base.astro';
 import Section from '@/components/Section.astro';
+import DiaryPrivacyGate from '@/components/DiaryPrivacyGate.astro';
 import { getCollection } from 'astro:content';
-import type { CollectionEntry } from 'astro:content';
 
 const { title, description } = AppConfig;
 
-const allDiaries = await getCollection('diary');
-allDiaries.sort((a, b) => 
-    b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-);
+const diaryEntries = (await getCollection('diary'))
+	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+	.map((entry) => {
+		const date = new Date(entry.data.pubDate);
+		return {
+			slug: entry.slug,
+			title: entry.data.title,
+			description: entry.data.description || '这天没有写摘要。',
+			year: date.getFullYear(),
+			month: date.getMonth() + 1,
+			day: date.getDate(),
+			isoDate: date.toISOString().slice(0, 10),
+			displayDate: date.toLocaleDateString('zh-CN', {
+				year: 'numeric',
+				month: '2-digit',
+				day: '2-digit',
+				weekday: 'short',
+			}),
+		};
+	});
 
-// 1. 数据分组逻辑调整：只按【年】分组，与 Post 页面保持一致
-const groupedDiaries = allDiaries.reduce((acc, diary) => {
-    const year = new Date(diary.data.pubDate).getFullYear().toString();
-    if (!acc[year]) {
-        acc[year] = [];
-    }
-    acc[year].push(diary);
-    return acc;
-}, {} as Record<string, CollectionEntry<'diary'>[]>);
+const years = [...new Set(diaryEntries.map((item) => item.year.toString()))];
+const now = new Date();
+const currentYear = now.getFullYear();
+const currentMonth = now.getMonth() + 1;
 
-const years = Object.keys(groupedDiaries).sort((a, b) => Number(b) - Number(a));
+const toDaySerial = (isoDate: string) =>
+	Math.floor(new Date(`${isoDate}T00:00:00Z`).getTime() / 86400000);
+
+const calcLongestStreak = (isoDates: string[]) => {
+	const sorted = [...new Set(isoDates)]
+		.map((date) => toDaySerial(date))
+		.sort((a, b) => a - b);
+
+	if (sorted.length === 0) return 0;
+
+	let longest = 1;
+	let current = 1;
+
+	for (let index = 1; index < sorted.length; index += 1) {
+		const currentDay = sorted[index];
+		const previousDay = sorted[index - 1];
+		if (currentDay !== undefined && previousDay !== undefined && currentDay === previousDay + 1) {
+			current += 1;
+			longest = Math.max(longest, current);
+		} else {
+			current = 1;
+		}
+	}
+
+	return longest;
+};
+
+const thisYearCount = diaryEntries.filter((entry) => entry.year === currentYear).length;
+const thisMonthCount = diaryEntries.filter(
+	(entry) => entry.year === currentYear && entry.month === currentMonth,
+).length;
+const longestStreak = calcLongestStreak(diaryEntries.map((entry) => entry.isoDate));
 ---
 
 <Base head={{ title: `生活切片 - ${title}`, description }}>
-    
-    {/* 1. Header 区域：完全复用 Post 页面的排版 */}
-    <Section>
-        <div class="py-12 md:py-20 border-b border-gray-100 dark:border-white/5">
-            <h1 class="text-4xl md:text-6xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
-                生活切片
-            </h1>
-            <div class="flex items-center gap-3 text-lg text-gray-500 font-medium">
-                <span class="tracking-wide">瞬时 · 琐事 · 独白</span>
-                <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700"></span>
-                <span>共收录 {allDiaries.length} 条</span>
-            </div>
-        </div>
-    </Section>
+	<DiaryPrivacyGate />
 
-    <Section>
-        <div class="py-10 space-y-24">
-            {years.map(year => (
-                <div class="relative">
-                    
-                    {/* 2. 布局结构：左侧年份 + 右侧列表 */}
-                    <div class="flex flex-col md:flex-row gap-8 md:gap-16">
-                        
-                        {/* 左侧年份水印 */}
-                        <div class="md:w-32 flex-shrink-0">
-                            <div class="sticky top-24 text-left">
-                                <span class="block text-6xl md:text-8xl font-bold text-gray-300 dark:text-gray-700 tracking-tighter leading-none select-none">
-                                    {year}
-                                </span>
-                                <div class="hidden md:block w-12 h-1.5 bg-gray-300 dark:bg-gray-700 mt-4 ml-1 rounded-full"></div>
-                            </div>
-                        </div>
+	<Section>
+		<div class="py-10 md:py-16 hidden" data-diary-protected>
+			<div class="mb-10 rounded-3xl border border-black/10 bg-gradient-to-br from-amber-50 via-rose-50 to-blue-50 p-6 shadow-sm dark:border-white/10 dark:from-[#1f1914] dark:via-[#1f171d] dark:to-[#151b24]">
+				<div class="flex flex-wrap items-start justify-between gap-4">
+					<div>
+						<p class="text-xs uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+							Private Journal Hub
+						</p>
+						<h1 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white md:text-5xl">
+							生活切片
+						</h1>
+						<p class="mt-3 max-w-2xl text-sm leading-relaxed text-gray-600 dark:text-gray-300 md:text-base">
+							把每天的碎片变成可检索、可回顾、可沉淀的私人记录空间。
+						</p>
+					</div>
+					<button
+						type="button"
+						data-diary-lock
+						class="hidden rounded-xl border border-black/10 bg-white/70 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-white dark:border-white/20 dark:bg-black/20 dark:text-gray-200 dark:hover:bg-black/40"
+					>
+						锁定日记
+					</button>
+				</div>
+			</div>
 
-                        {/* 右侧列表 */}
-                        <div class="flex-1 flex flex-col">
-                            {groupedDiaries[year]!.map((post) => {
-                                const dateObj = new Date(post.data.pubDate);
-                                // 日期格式化：2月 07
-                                const month = (dateObj.getMonth() + 1).toString() + '月';
-                                const day = dateObj.getDate().toString().padStart(2, '0');
+			<div id="diary-hub" class="space-y-8">
+				<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+					<div class="rounded-2xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-[#141416]">
+						<p class="text-xs uppercase tracking-wider text-gray-400">总记录</p>
+						<p id="stat-total" class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{diaryEntries.length}</p>
+					</div>
+					<div class="rounded-2xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-[#141416]">
+						<p class="text-xs uppercase tracking-wider text-gray-400">今年记录</p>
+						<p id="stat-year" class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{thisYearCount}</p>
+					</div>
+					<div class="rounded-2xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-[#141416]">
+						<p class="text-xs uppercase tracking-wider text-gray-400">本月记录</p>
+						<p id="stat-month" class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{thisMonthCount}</p>
+					</div>
+					<div class="rounded-2xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-[#141416]">
+						<p class="text-xs uppercase tracking-wider text-gray-400">最长连续记录</p>
+						<p id="stat-streak" class="mt-2 text-2xl font-bold text-gray-900 dark:text-white">{longestStreak} 天</p>
+					</div>
+				</div>
 
-                                return (
-                                    <a 
-                                        href={`/diary/${post.slug}`} 
-                                        class="group relative py-8 border-t first:border-t-0 border-gray-100 dark:border-white/5 transition-all duration-300 hover:bg-gray-50/50 dark:hover:bg-white/5 -mx-4 px-4 rounded-2xl md:mx-0 md:px-0 md:rounded-none md:hover:bg-transparent"
-                                    >
-                                        <div class="flex flex-col md:flex-row md:items-baseline gap-4 md:gap-8">
-                                            
-                                            {/* 日期列 */}
-                                            <div class="flex md:flex-col items-baseline md:items-end gap-2 md:gap-0 w-full md:w-24 flex-shrink-0 text-gray-400 font-mono text-sm md:text-base">
-                                                <span class="font-bold text-gray-900 dark:text-gray-200">{month} {day}</span>
-                                                <span class="hidden md:inline text-xs opacity-50">/ {year}</span>
-                                            </div>
+				<div class="rounded-2xl border border-black/10 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#141416]">
+					<div class="grid gap-3 md:grid-cols-[2fr_1fr_1fr_1fr_auto]">
+						<input
+							id="diary-search-input"
+							type="search"
+							placeholder="搜索标题或摘要（按 / 快速聚焦）"
+							class="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/5 dark:text-gray-100 dark:focus:border-blue-400 dark:focus:bg-white/10"
+						/>
+						<select id="diary-year-filter" class="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/5 dark:text-gray-100">
+							<option value="all">所有年份</option>
+							{years.map((year) => <option value={year}>{year} 年</option>)}
+						</select>
+						<select id="diary-month-filter" class="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/5 dark:text-gray-100">
+							<option value="all">所有月份</option>
+							{Array.from({ length: 12 }, (_, monthIndex) => monthIndex + 1).map((month) => (
+								<option value={month.toString()}>{month} 月</option>
+							))}
+						</select>
+						<select id="diary-sort" class="rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/5 dark:text-gray-100">
+							<option value="desc">最新优先</option>
+							<option value="asc">最早优先</option>
+						</select>
+						<button
+							id="diary-clear-filters"
+							type="button"
+							class="rounded-xl border border-black/10 px-3 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50 dark:border-white/10 dark:text-gray-300 dark:hover:bg-white/10"
+						>
+							重置
+						</button>
+					</div>
 
-                                            {/* 内容主体 */}
-                                            <div class="flex-1 min-w-0">
-                                                <h3 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                                    {post.data.title}
-                                                </h3>
+					<div class="mt-4 flex flex-wrap items-center gap-2">
+						<button
+							id="diary-random-btn"
+							type="button"
+							class="rounded-lg bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-black dark:bg-white dark:text-black dark:hover:bg-gray-200"
+						>
+							随机打开一篇
+						</button>
+						<button
+							id="diary-memory-btn"
+							type="button"
+							class="rounded-lg border border-black/10 px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/20 dark:text-gray-200 dark:hover:bg-white/10"
+						>
+							今天的往年回忆
+						</button>
+						<span id="diary-memory-result" class="text-sm text-gray-500 dark:text-gray-400"></span>
+					</div>
+				</div>
 
-                                                {/* 如果日记有标签，这里也可以显示，如果没有可以不写 */}
-                                                {/* <div class="flex flex-wrap gap-2 mb-3">...Tags...</div> */}
+				<div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+					<div class="rounded-2xl border border-black/10 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[#141416]">
+						<div class="mb-4 flex items-center justify-between">
+							<p class="text-xs uppercase tracking-[0.2em] text-gray-400">Entries</p>
+							<p class="text-sm text-gray-500 dark:text-gray-400">
+								匹配结果 <span id="diary-result-count" class="font-semibold text-gray-700 dark:text-gray-200">{diaryEntries.length}</span>
+							</p>
+						</div>
 
-                                                {/* 描述/摘要 */}
-                                                <p class="text-base text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed max-w-2xl">
-                                                    {post.data.description}
-                                                </p>
-                                                
-                                                <div class="md:hidden mt-4 text-sm font-semibold text-indigo-600 dark:text-indigo-400">
-                                                    阅读全文 →
-                                                </div>
-                                            </div>
+						<div id="diary-entry-list" class="space-y-3">
+							{diaryEntries.map((entry, index) => (
+								<article
+									data-diary-entry
+									data-slug={entry.slug}
+									data-title={entry.title.toLowerCase()}
+									data-description={entry.description.toLowerCase()}
+									data-year={entry.year}
+									data-month={entry.month}
+									data-day={entry.day}
+									data-date={entry.isoDate}
+									class="group rounded-2xl border border-gray-100 bg-gray-50/70 p-4 transition hover:border-gray-200 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:hover:bg-white/10"
+									style={`animation-delay: ${Math.min(index, 8) * 45}ms;`}
+								>
+									<div class="flex items-start gap-3">
+										<a href={`/diary/${entry.slug}`} class="min-w-0 flex-1">
+											<div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-400">
+												<span>{entry.displayDate}</span>
+												<span class="inline-block h-1 w-1 rounded-full bg-gray-300 dark:bg-gray-700"></span>
+												<span>{entry.year} / {entry.month.toString().padStart(2, '0')}</span>
+											</div>
+											<h3 class="mt-2 line-clamp-1 text-lg font-semibold text-gray-900 transition group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-300">
+												{entry.title}
+											</h3>
+											<p class="mt-1 line-clamp-2 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+												{entry.description}
+											</p>
+										</a>
+										<button
+											type="button"
+											data-favorite-toggle
+											data-slug={entry.slug}
+											class="favorite-toggle mt-1 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-sm text-gray-400 transition hover:border-amber-300 hover:text-amber-500 dark:border-white/20 dark:text-gray-500 dark:hover:border-amber-400/60 dark:hover:text-amber-300"
+											aria-label="收藏这篇日记"
+										>
+											☆
+										</button>
+									</div>
+								</article>
+							))}
+						</div>
 
-                                            {/* 桌面端悬浮箭头 */}
-                                            <div class="hidden md:flex items-center self-center justify-center w-10 h-10 rounded-full border border-gray-100 dark:border-white/10 text-gray-300 opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                                            </div>
-                                        </div>
-                                    </a>
-                                )
-                            })}
-                        </div>
-                    </div>
-                </div>
-            ))}
-        </div>
-        
-        {/* 底部装饰点 */}
-        <div class="py-20 text-center">
-            <span class="inline-block w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700 mx-1"></span>
-            <span class="inline-block w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700 mx-1"></span>
-            <span class="inline-block w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700 mx-1"></span>
-        </div>
-    </Section>
+						<div id="diary-empty-state" class="hidden rounded-xl border border-dashed border-gray-200 bg-gray-50/70 p-6 text-center text-sm text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-400">
+							当前筛选条件下没有记录，试试放宽关键词或月份。
+						</div>
+					</div>
+
+					<aside class="space-y-4">
+						<div class="rounded-2xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-[#141416]">
+							<p class="text-xs uppercase tracking-[0.2em] text-gray-400">最近阅读</p>
+							<ul id="diary-recent-list" class="mt-3 space-y-2"></ul>
+						</div>
+						<div class="rounded-2xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-[#141416]">
+							<p class="text-xs uppercase tracking-[0.2em] text-gray-400">我的收藏</p>
+							<ul id="diary-favorite-list" class="mt-3 space-y-2"></ul>
+						</div>
+						<div class="rounded-2xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-[#141416]">
+							<p class="text-xs uppercase tracking-[0.2em] text-gray-400">隐私说明</p>
+							<p class="mt-3 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+								当前日记使用前端口令门禁。若要固定站点口令，请在部署环境设置
+								`PUBLIC_DIARY_PASSCODE_SHA256`。
+							</p>
+						</div>
+					</aside>
+				</div>
+			</div>
+		</div>
+	</Section>
+
+	<script is:inline>
+		const calcStreak = (isoDates) => {
+			const days = [...new Set(isoDates)]
+				.map((date) => Math.floor(new Date(`${date}T00:00:00Z`).getTime() / 86400000))
+				.sort((a, b) => a - b);
+			if (days.length === 0) return 0;
+
+			let longest = 1;
+			let current = 1;
+
+			for (let i = 1; i < days.length; i += 1) {
+				if (days[i] === days[i - 1] + 1) {
+					current += 1;
+					longest = Math.max(longest, current);
+				} else {
+					current = 1;
+				}
+			}
+
+			return longest;
+		};
+
+		const initDiaryHub = () => {
+			const root = document.getElementById('diary-hub');
+			if (!root || root.dataset.bound === '1') return;
+			root.dataset.bound = '1';
+
+			const searchInput = document.getElementById('diary-search-input');
+			const yearFilter = document.getElementById('diary-year-filter');
+			const monthFilter = document.getElementById('diary-month-filter');
+			const sortFilter = document.getElementById('diary-sort');
+			const clearButton = document.getElementById('diary-clear-filters');
+			const randomButton = document.getElementById('diary-random-btn');
+			const memoryButton = document.getElementById('diary-memory-btn');
+			const memoryResult = document.getElementById('diary-memory-result');
+
+			const resultCount = document.getElementById('diary-result-count');
+			const statTotal = document.getElementById('stat-total');
+			const statYear = document.getElementById('stat-year');
+			const statMonth = document.getElementById('stat-month');
+			const statStreak = document.getElementById('stat-streak');
+			const emptyState = document.getElementById('diary-empty-state');
+			const list = document.getElementById('diary-entry-list');
+			const favoriteList = document.getElementById('diary-favorite-list');
+			const recentList = document.getElementById('diary-recent-list');
+
+			if (
+				!(searchInput instanceof HTMLInputElement) ||
+				!(yearFilter instanceof HTMLSelectElement) ||
+				!(monthFilter instanceof HTMLSelectElement) ||
+				!(sortFilter instanceof HTMLSelectElement) ||
+				!(clearButton instanceof HTMLButtonElement) ||
+				!(randomButton instanceof HTMLButtonElement) ||
+				!(memoryButton instanceof HTMLButtonElement) ||
+				!(memoryResult instanceof HTMLElement) ||
+				!(resultCount instanceof HTMLElement) ||
+				!(statTotal instanceof HTMLElement) ||
+				!(statYear instanceof HTMLElement) ||
+				!(statMonth instanceof HTMLElement) ||
+				!(statStreak instanceof HTMLElement) ||
+				!(emptyState instanceof HTMLElement) ||
+				!(list instanceof HTMLElement) ||
+				!(favoriteList instanceof HTMLElement) ||
+				!(recentList instanceof HTMLElement)
+			) {
+				return;
+			}
+
+			const FAVORITE_KEY = 'diary.favorite.v1';
+			const RECENT_KEY = 'diary.recent.v1';
+
+			const safeReadArray = (key) => {
+				try {
+					const value = JSON.parse(localStorage.getItem(key) || '[]');
+					return Array.isArray(value) ? value : [];
+				} catch {
+					return [];
+				}
+			};
+
+			const getFavorites = () => new Set(safeReadArray(FAVORITE_KEY).filter((item) => typeof item === 'string'));
+			const saveFavorites = (favorites) => {
+				localStorage.setItem(FAVORITE_KEY, JSON.stringify([...favorites]));
+			};
+
+			const allCards = Array.from(document.querySelectorAll('[data-diary-entry]'));
+			const entries = allCards.map((element) => {
+				const data = element.dataset;
+				const date = data.date || '';
+				return {
+					element,
+					slug: data.slug || '',
+					title: data.title || '',
+					description: data.description || '',
+					year: Number(data.year || 0),
+					month: Number(data.month || 0),
+					day: Number(data.day || 0),
+					date,
+					time: new Date(`${date}T00:00:00`).getTime(),
+				};
+			});
+
+			const entryMap = new Map(entries.map((entry) => [entry.slug, entry]));
+			let visibleEntries = [...entries];
+
+			const updateFavoriteButtons = () => {
+				const favorites = getFavorites();
+				document.querySelectorAll('[data-favorite-toggle]').forEach((button) => {
+					if (!(button instanceof HTMLButtonElement)) return;
+					const slug = button.dataset.slug || '';
+					const isFavorite = favorites.has(slug);
+					button.textContent = isFavorite ? '★' : '☆';
+					button.classList.toggle('text-amber-500', isFavorite);
+					button.classList.toggle('border-amber-300', isFavorite);
+					button.classList.toggle('dark:text-amber-300', isFavorite);
+				});
+			};
+
+			const renderListTo = (target, rows, emptyText) => {
+				target.innerHTML = '';
+				if (!rows.length) {
+					const li = document.createElement('li');
+					li.className = 'text-sm text-gray-400 dark:text-gray-500';
+					li.textContent = emptyText;
+					target.appendChild(li);
+					return;
+				}
+
+				rows.forEach((row) => {
+					const li = document.createElement('li');
+					const anchor = document.createElement('a');
+					anchor.href = `/diary/${row.slug}`;
+					anchor.className =
+						'block rounded-xl border border-gray-100 px-3 py-2 text-sm text-gray-700 transition hover:bg-gray-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/10';
+					anchor.textContent = row.label;
+					li.appendChild(anchor);
+					target.appendChild(li);
+				});
+			};
+
+			const renderFavorites = () => {
+				const favorites = [...getFavorites()];
+				const rows = favorites
+					.map((slug) => entryMap.get(slug))
+					.filter(Boolean)
+					.map((entry) => ({
+						slug: entry.slug,
+						label: `${entry.date} · ${entry.title}`,
+					}));
+				renderListTo(favoriteList, rows, '还没有收藏，点击右侧星标即可。');
+			};
+
+			const renderRecent = () => {
+				const recentRows = safeReadArray(RECENT_KEY)
+					.filter((item) => item && typeof item.slug === 'string')
+					.slice(0, 8)
+					.map((item) => ({
+						slug: item.slug,
+						label: `${item.date || ''} · ${item.title || item.slug}`,
+					}));
+				renderListTo(recentList, recentRows, '暂无最近阅读记录。');
+			};
+
+			const applyFilters = () => {
+				const keyword = searchInput.value.trim().toLowerCase();
+				const year = yearFilter.value;
+				const month = monthFilter.value;
+				const sort = sortFilter.value;
+
+				visibleEntries = entries.filter((entry) => {
+					const keywordMatched =
+						!keyword || entry.title.includes(keyword) || entry.description.includes(keyword);
+					const yearMatched = year === 'all' || String(entry.year) === year;
+					const monthMatched = month === 'all' || String(entry.month) === month;
+					return keywordMatched && yearMatched && monthMatched;
+				});
+
+				visibleEntries.sort((left, right) => (sort === 'asc' ? left.time - right.time : right.time - left.time));
+
+				entries.forEach((entry) => entry.element.classList.add('hidden'));
+				visibleEntries.forEach((entry) => {
+					entry.element.classList.remove('hidden');
+					list.appendChild(entry.element);
+				});
+
+				resultCount.textContent = `${visibleEntries.length}`;
+				statTotal.textContent = `${visibleEntries.length}`;
+
+				const now = new Date();
+				const yearCount = visibleEntries.filter((entry) => entry.year === now.getFullYear()).length;
+				const monthCount = visibleEntries.filter(
+					(entry) => entry.year === now.getFullYear() && entry.month === now.getMonth() + 1,
+				).length;
+				const streak = calcStreak(visibleEntries.map((entry) => entry.date));
+
+				statYear.textContent = `${yearCount}`;
+				statMonth.textContent = `${monthCount}`;
+				statStreak.textContent = `${streak} 天`;
+				emptyState.classList.toggle('hidden', visibleEntries.length > 0);
+			};
+
+			clearButton.addEventListener('click', () => {
+				searchInput.value = '';
+				yearFilter.value = 'all';
+				monthFilter.value = 'all';
+				sortFilter.value = 'desc';
+				memoryResult.textContent = '';
+				applyFilters();
+			});
+
+			[searchInput, yearFilter, monthFilter, sortFilter].forEach((control) => {
+				control.addEventListener('input', applyFilters);
+				control.addEventListener('change', applyFilters);
+			});
+
+			document.querySelectorAll('[data-favorite-toggle]').forEach((button) => {
+				if (!(button instanceof HTMLButtonElement) || button.dataset.bound === '1') return;
+				button.dataset.bound = '1';
+				button.addEventListener('click', () => {
+					const slug = button.dataset.slug || '';
+					if (!slug) return;
+					const favorites = getFavorites();
+					if (favorites.has(slug)) {
+						favorites.delete(slug);
+					} else {
+						favorites.add(slug);
+					}
+					saveFavorites(favorites);
+					updateFavoriteButtons();
+					renderFavorites();
+				});
+			});
+
+			randomButton.addEventListener('click', () => {
+				if (!visibleEntries.length) return;
+				const picked = visibleEntries[Math.floor(Math.random() * visibleEntries.length)];
+				window.location.href = `/diary/${picked.slug}`;
+			});
+
+			memoryButton.addEventListener('click', () => {
+				const now = new Date();
+				const month = now.getMonth() + 1;
+				const day = now.getDate();
+				const year = now.getFullYear();
+				const candidates = entries.filter(
+					(entry) => entry.month === month && entry.day === day && entry.year !== year,
+				);
+				memoryResult.textContent = '';
+
+				if (!candidates.length) {
+					memoryResult.textContent = '今天在往年没有记录。';
+					return;
+				}
+
+				const picked = candidates[Math.floor(Math.random() * candidates.length)];
+				const anchor = document.createElement('a');
+				anchor.href = `/diary/${picked.slug}`;
+				anchor.className = 'text-sm font-medium text-blue-600 hover:underline dark:text-blue-300';
+				anchor.textContent = `去看 ${picked.date} 的你`;
+				memoryResult.appendChild(anchor);
+			});
+
+			window.addEventListener('keydown', (event) => {
+				const activeTag = document.activeElement ? document.activeElement.tagName : '';
+				if (event.key === '/' && activeTag !== 'INPUT' && activeTag !== 'TEXTAREA') {
+					event.preventDefault();
+					searchInput.focus();
+				}
+			});
+
+			updateFavoriteButtons();
+			renderFavorites();
+			renderRecent();
+			applyFilters();
+		};
+
+		document.addEventListener('astro:page-load', initDiaryHub);
+	</script>
 </Base>

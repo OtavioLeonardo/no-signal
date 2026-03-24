@@ -6,22 +6,23 @@ interface Props {
 
 const { tag, withHref } = Astro.props;
 
-// 定义统一的 Apple Pill 样式
-const baseClass = "inline-flex items-center px-3 py-1 rounded-full text-xs font-medium tracking-wide transition-all duration-200 border shadow-sm";
-const colorClass = "bg-white border-gray-200 text-gray-600 hover:text-black hover:shadow-md hover:scale-105 hover:border-gray-300 dark:bg-white/10 dark:border-white/5 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/20";
-const noHrefClass = "bg-gray-100 border-transparent text-gray-500 dark:bg-white/5 dark:text-gray-400 cursor-default";
+const baseClass =
+	'inline-flex items-center rounded-md border px-2 py-1 text-[11px] font-medium tracking-wide transition-colors';
+const withHrefClass =
+	'border-[var(--border)] bg-[color:var(--panel)] text-[color:var(--text-muted)] hover:text-[color:var(--text)] hover:border-[color:var(--accent-2)]';
+const noHrefClass = 'border-[var(--border)] bg-[color:var(--panel)] text-[color:var(--text-muted)]';
 ---
 
 {
     withHref ? (
         <a
             href={`/tags/${tag}`}
-            class={`${baseClass} ${colorClass} mr-2 mb-2`}
+            class={`${baseClass} ${withHrefClass} mr-1.5 mb-1.5`}
         >
             #{tag}
         </a>
     ) : (
-        <span class={`${baseClass} ${noHrefClass} mr-2 mb-2`}>
+        <span class={`${baseClass} ${noHrefClass} mr-1.5 mb-1.5`}>
              #{tag}
         </span>
     )

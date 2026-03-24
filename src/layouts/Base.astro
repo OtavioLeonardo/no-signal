@@ -23,6 +23,7 @@ const {
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="theme-color" content="#ece8df" />
 		<title>{title}</title>
 		<meta name="description" content={description} />
 		<meta name="author" content={AppConfig.author} />
@@ -31,9 +32,12 @@ const {
 		<link rel="alternate" type="application/rss+xml" href="/rss.xml" />
 		<link rel="icon" type="image/png" href="/nobg.png" />
 		
-		<link rel="preconnect" href="https://fonts.googleapis.com">
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+SC:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Serif+SC:wght@400;600;700&display=swap"
+			rel="stylesheet"
+		/>
 		
 		<PostHog />
 		<ClientRouter />
@@ -99,12 +103,9 @@ const {
 			});
 		</script>
 	</head>
-	<body class="flex min-h-screen flex-col bg-[#F5F5F7] dark:bg-black selection:bg-blue-100 selection:text-blue-900 dark:selection:bg-blue-900 dark:selection:text-blue-100">
+	<body class="site-body flex min-h-screen flex-col selection:bg-[var(--selection-bg)] selection:text-[var(--selection-fg)]">
+		<div class="site-ambient" aria-hidden="true"></div>
 		
-        {/* ✅ 2. 在这里插入组件 
-           class="lg:hidden": 意思是 "Large Screen Hidden"（大屏幕隐藏）。
-           这样它只会在手机/平板出现，不会和电脑版左侧的目录冲突。
-        */}
         <div class="lg:hidden">
             <MobileReadingProgress />
         </div>
@@ -115,32 +116,19 @@ const {
 		</div>
 		<Footer />
 
-		{/* ✅ 3. 修复了格式的滚动解锁脚本 */}
 		<script is:inline>
             function unlockScroll() {
-                // 1. 强制 html (documentElement) 允许滚动
                 document.documentElement.style.overflowY = 'auto';
-                
-                // 2. 强制 body 为 visible，让 Sticky 生效
                 document.body.style.overflow = 'visible';
-                
-                // 3. 处理横向溢出
                 document.body.style.overflowX = 'clip';
-                
-                // 解决 iOS/Safari 焦点问题
                 if (document.activeElement instanceof HTMLElement) {
                     document.activeElement.blur();
                 }
                 window.focus();
             }
 
-            // 立即执行
             unlockScroll();
-
-            // Astro 页面切换后执行
             document.addEventListener('astro:page-load', unlockScroll);
-            
-            // 补救措施
             document.addEventListener('astro:after-swap', unlockScroll);
             setTimeout(unlockScroll, 100);
         </script>
